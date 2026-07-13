@@ -1,0 +1,51 @@
+/** Builds Aetheris' system prompt from the learner's real study state — sources,
+ *  mastery, due reviews, streak — the same "ground the model in real data"
+ *  pattern as the rest of the suite's Aetheris assistants. */
+import type { ChironIndex } from "@/lib/study/types";
+import { cardsDue } from "@/lib/study/srs";
+import { today } from "@/lib/study/types";
+
+export function buildSystemPrompt(index: ChironIndex, locale: "pt" | "en"): string {
+  const sourceLines = index.sources
+    .map((s) => {
+      const nodes = index.nodes.filter((n) => n.sourceId === s.id);
+      const mastered = nodes.filter((n) => n.mastery >= 3).length;
+      return `- ${s.name} (${s.kind}${s.language ? `, ${s.language}` : ""}): ${nodes.length} nós, ${mastered} dominados`;
+    })
+    .join("\n") || "(nenhuma fonte ainda)";
+
+  const due = cardsDue(index.cards, today());
+
+  const base = locale === "pt"
+    ? `Você é o Aetheris, o tutor de código do Chiron — um app que ensina a ler e entender código real de repositórios e stacks. Responda de forma didática, com exemplos concretos, e prefira explicar POR QUE algo é feito de um jeito, não só O QUE o código faz.
+
+===== ESTADO REAL DO ESTUDANTE =====
+Fontes de estudo:
+${sourceLines}
+
+Revisões pendentes (SRS): ${due}
+Sequência de estudo: ${index.score.streak} dias
+Pontos totais: ${index.score.total}
+
+Baseie suas respostas nesse contexto real quando fizer sentido — por exemplo, sugira revisar cards pendentes, ou explique um conceito citando uma das fontes acima. Nunca invente arquivos ou trechos de código que não existem.`
+    : `You are Aetheris, Chiron's code tutor — an app that teaches how to read and understand real code from repositories and stacks. Answer didactically, with concrete examples, and prefer explaining WHY something is done a certain way, not just WHAT the code does.
+
+===== LEARNER'S REAL STATE =====
+Study sources:
+${sourceLines}
+
+Pending reviews (SRS): ${due}
+Study streak: ${index.score.streak} days
+Total points: ${index.score.total}
+
+Ground your answers in this real context when it makes sense — e.g. suggest reviewing pending cards, or explain a concept by citing one of the sources above. Never invent files or code snippets that don't exist.`;
+
+  return base;
+}
+
+/** Cheap client-side token estimate (chars/4, the standard rule-of-thumb for
+ *  English/Portuguese with GPT-style tokenizers) — good enough for a UI
+ *  indicator, not for billing. Labeled as an estimate in the UI. */
+export function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}

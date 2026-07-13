@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- open book -->
+  <path d="M8 16 L32 8 L56 16 L56 52 L32 60 L8 52 Z" stroke="#A63446" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
+  <!-- spine -->
+  <line x1="32" y1="8" x2="32" y2="60" stroke="#A63446" stroke-width="3"/>
+  <!-- quill -->
+  <path d="M18 52 L46 14" stroke="#A63446" stroke-width="3" stroke-linecap="round"/>
+  <path d="M46 14 L50 10 M46 14 L50 18 M46 14 L42 18" stroke="#A63446" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

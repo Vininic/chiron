@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Chiron design system — sepia leather ink + red-ink crimson accent on warm
+   parchment. Sibling of Chronos (midnight + bronze), Kairos (twilight +
+   rose-gold), Pluto (vault green + gold), Hermes (graphite + cyan): same
+   paper, same cards, same type — but where the others measure time, move
+   work, or guard wealth, Chiron carries knowledge: deep sepia for the
+   inkwell, crimson for the teacher's corrections. */
+
+@layer base {
+  :root {
+    /* Surfaces — the shared suite parchment */
+    --background: 39 33% 95%;          /* #F7F4EE parchment */
+    --foreground: 24 28% 18%;         /* sepia leather #3B2A20 */
+
+    --surface-raised: 38 40% 97%;
+    --surface-veil: 39 22% 88%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 24 28% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 24 28% 18%;
+
+    /* Brand */
+    --primary: 24 28% 18%;            /* sepia leather #3B2A20 */
+    --primary-foreground: 39 33% 95%;
+    --primary-deep: 24 34% 10%;        /* near-black sepia #1C130E */
+    --primary-glow: 24 24% 30%;
+
+    --secondary: 346 52% 43%;          /* red-ink crimson #A63446 */
+    --secondary-foreground: 0 0% 100%;
+    --secondary-soft: 346 56% 60%;     /* soft crimson */
+
+    --muted: 39 22% 90%;
+    --muted-foreground: 24 14% 34%;
+
+    --accent: 346 56% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --neutral-veil: 39 22% 82%;
+
+    --destructive: 8 62% 44%;
+    --destructive-foreground: 39 33% 97%;
+
+    --border: 39 18% 84%;
+    --input: 39 18% 84%;
+    --ring: 346 52% 43%;
+
+    --radius: 0.625rem;
+
+    /* Sidebar — strongly sepia */
+    --sidebar-background: 24 34% 10%;
+    --sidebar-foreground: 30 16% 86%;
+    --sidebar-primary: 346 52% 43%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 24 28% 18%;
+    --sidebar-accent-foreground: 39 33% 95%;
+    --sidebar-border: 24 26% 17%;
+    --sidebar-ring: 346 52% 43%;
+
+    /* Gradients */
+    --gradient-signal: linear-gradient(160deg, hsl(24 34% 10%) 0%, hsl(24 30% 14%) 60%, hsl(24 24% 20%) 100%);
+    --gradient-crimson: linear-gradient(135deg, hsl(346 56% 60%) 0%, hsl(346 52% 43%) 100%);
+    --gradient-parchment: radial-gradient(1200px 600px at 80% -10%, hsl(346 62% 50% / 0.12), transparent 60%),
+                          radial-gradient(900px 500px at -10% 110%, hsl(24 28% 18% / 0.08), transparent 60%),
+                          linear-gradient(180deg, hsl(39 35% 96%), hsl(39 33% 93%));
+    --gradient-veil: linear-gradient(180deg, hsl(39 33% 95% / 0), hsl(39 33% 95% / 0.9));
+
+    /* Shadows */
+    --shadow-soft: 0 1px 2px hsl(24 28% 18% / 0.04), 0 8px 24px -12px hsl(24 28% 18% / 0.12);
+    --shadow-elevated: 0 2px 4px hsl(24 28% 18% / 0.06), 0 24px 48px -20px hsl(24 28% 18% / 0.22);
+    --shadow-crimson: 0 10px 30px -12px hsl(346 52% 43% / 0.55);
+
+    /* Motion */
+    --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Dark theme — "Scriptorium Atelier"                                  */
+  /*  Same palette logic as Chronos/Kairos/Pluto/Hermes, inverted: deep  */
+  /*  sepia-black surfaces with crimson accent leading in dark mode.     */
+  /* ------------------------------------------------------------------ */
+  .dark {
+    --background: 24 28% 6%;
+    --foreground: 30 18% 90%;
+
+    --surface-raised: 24 24% 9%;
+    --surface-veil:   24 20% 12%;
+
+    --card: 24 22% 8%;
+    --card-foreground: 30 18% 90%;
+
+    --popover: 24 22% 8%;
+    --popover-foreground: 30 18% 90%;
+
+    --primary: 346 52% 52%;            /* crimson becomes the lead in dark */
+    --primary-foreground: 24 30% 6%;
+    --primary-deep: 346 44% 38%;
+    --primary-glow: 346 56% 62%;
+
+    --secondary: 346 52% 52%;
+    --secondary-foreground: 24 30% 6%;
+    --secondary-soft: 346 56% 66%;
+
+    --muted: 24 16% 16%;
+    --muted-foreground: 30 14% 68%;
+
+    --accent: 346 52% 52%;
+    --accent-foreground: 24 30% 6%;
+
+    --neutral-veil: 24 14% 20%;
+
+    --destructive: 8 70% 55%;
+    --destructive-foreground: 39 30% 96%;
+
+    --border: 24 18% 15%;
+    --input: 24 18% 15%;
+    --ring: 346 52% 52%;
+
+    --sidebar-background: 24 34% 5%;
+    --sidebar-foreground: 30 20% 84%;
+    --sidebar-primary: 346 52% 52%;
+    --sidebar-primary-foreground: 24 30% 6%;
+    --sidebar-accent: 24 22% 10%;
+    --sidebar-accent-foreground: 30 30% 95%;
+    --sidebar-border: 24 20% 14%;
+    --sidebar-ring: 346 52% 52%;
+
+    --gradient-signal: linear-gradient(160deg, hsl(24 34% 5%) 0%, hsl(24 28% 10%) 60%, hsl(24 22% 16%) 100%);
+    --gradient-crimson: linear-gradient(135deg, hsl(346 56% 66%) 0%, hsl(346 52% 46%) 100%);
+    --gradient-parchment: radial-gradient(1200px 600px at 80% -10%, hsl(346 52% 52% / 0.10), transparent 60%),
+                          radial-gradient(900px 500px at -10% 110%, hsl(24 28% 30% / 0.18), transparent 60%),
+                          linear-gradient(180deg, hsl(24 28% 6%), hsl(24 22% 7%));
+    --gradient-veil: linear-gradient(180deg, hsl(24 28% 6% / 0), hsl(24 28% 6% / 0.9));
+
+    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.4), 0 8px 24px -12px hsl(0 0% 0% / 0.55);
+    --shadow-elevated: 0 2px 4px hsl(0 0% 0% / 0.45), 0 24px 48px -20px hsl(0 0% 0% / 0.7);
+    --shadow-crimson: 0 10px 30px -12px hsl(346 52% 46% / 0.45);
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  html { height: 100%; }
+  body { min-height: 100%; }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01","cv11";
+  }
+  .font-display { font-family: 'Fraunces', ui-serif, Georgia, serif; font-optical-sizing: auto; letter-spacing: -0.02em; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .chiron-surface { background: var(--gradient-parchment); }
+  .chiron-card {
+    @apply bg-card rounded-xl border;
+    box-shadow: var(--shadow-soft);
+  }
+  .chiron-card-elevated {
+    @apply bg-card rounded-xl border;
+    box-shadow: var(--shadow-elevated);
+  }
+  .accent-rule {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--secondary) / 0.6), transparent);
+  }
+  .hairline { border-color: hsl(var(--border)); }
+  .num { font-variant-numeric: tabular-nums; }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .bg-accent { background: var(--gradient-crimson); }
+  .bg-ink { background: var(--gradient-signal); }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-elevated { box-shadow: var(--shadow-elevated); }
+  .shadow-crimson { box-shadow: var(--shadow-crimson); }
+  .ring-crimson { box-shadow: 0 0 0 1px hsl(var(--secondary) / 0.4); }
+}
