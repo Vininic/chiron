@@ -11,17 +11,31 @@ const TomePlaceholder = lazy(() => import("@/components/three/TomePlaceholder"))
 
 const CHRONOS_URL = "https://github.com/Vininic/chronos-the-art-of-time";
 
+// Canonical per-app suite palette (matches Hermes' lib/color.ts SOURCE_COLORS
+// / SUITE-ARCHITECTURE.md §5) — every app's landing should use these same
+// hex values for sibling cards instead of tinting them all with its own
+// --secondary, which is the bug this replaces.
+const SUITE_URLS: Record<string, { href: string; color: string }> = {
+  Chronos: { href: CHRONOS_URL, color: "#B7863B" },
+  Kairos: { href: "https://kairos-suite.vercel.app", color: "#C98FA6" },
+  Pluto: { href: "https://pluto-suite.vercel.app", color: "#C49A3A" },
+  Hermes: { href: "https://hermes-suite.vercel.app", color: "#3EB8CC" },
+  Chiron: { href: "/dashboard", color: "#A63446" },
+  Olympus: { href: "https://olympus-virid.vercel.app", color: "#C9B99A" },
+};
+
 export default function Landing() {
   const t = useT();
   const L = t.chiron.landing;
 
-  const SUITE = [
-    { n: "Chronos", live: true, href: CHRONOS_URL },
-    { n: "Kairos", live: true, href: "https://kairos-suite.vercel.app" },
-    { n: "Pluto", live: true, href: "https://pluto-suite.vercel.app" },
-    { n: "Hermes", live: true, href: "https://hermes-suite.vercel.app" },
-    { n: "Chiron", live: true, href: "/dashboard" },
-  ].map((app, i) => ({ ...app, r: L.suiteApps[i].role, d: L.suiteApps[i].desc }));
+  const SUITE = (["Chronos", "Kairos", "Pluto", "Hermes", "Chiron", "Olympus"] as const).map((n, i) => ({
+    n,
+    live: true,
+    href: SUITE_URLS[n].href,
+    color: SUITE_URLS[n].color,
+    r: L.suiteApps[i].role,
+    d: L.suiteApps[i].desc,
+  }));
 
   return (
     <div className="chiron-surface min-h-screen">
@@ -106,19 +120,19 @@ export default function Landing() {
           {SUITE.map((p) => {
             const card = (
               <div
-                className={`relative h-full overflow-hidden rounded-2xl p-6 ${
-                  p.live ? "bg-ink border border-secondary/20 shadow-elevated" : "border bg-card text-primary"
-                }`}
+                className="relative h-full overflow-hidden rounded-2xl border p-6 shadow-elevated"
+                style={{ backgroundColor: `${p.color}24`, borderColor: `${p.color}40` }}
               >
-                <div className={`text-xs uppercase tracking-[0.22em] ${p.live ? "text-secondary-soft" : "opacity-70"}`}>{p.r}</div>
-                <div className={`font-display mt-2 text-3xl ${p.live ? "text-sidebar-foreground" : ""}`}>{p.n}</div>
-                <p className={`mt-3 text-sm ${p.live ? "text-sidebar-foreground/70" : "text-muted-foreground"}`}>{p.d}</p>
+                <div className="text-xs uppercase tracking-[0.22em]" style={{ color: p.color }}>{p.r}</div>
+                <div className="font-display mt-2 text-3xl text-primary">{p.n}</div>
+                <p className="mt-3 text-sm text-muted-foreground">{p.d}</p>
                 <div className="mt-6 text-xs">
-                  {p.live ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 font-medium text-primary-foreground">{L.live}</span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-muted-foreground">{L.inAtelier}</span>
-                  )}
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-medium"
+                    style={{ backgroundColor: p.color, color: "#0b0a09" }}
+                  >
+                    {L.live}
+                  </span>
                 </div>
               </div>
             );

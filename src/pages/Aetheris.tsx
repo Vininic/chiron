@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Check, Copy, FileText, History, LayoutList, Loader2, PanelRightClose, PanelRightOpen,
-  Send, Settings2, Sparkles, Square, Volume2,
+  Send, Sparkles, Square, Volume2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,8 +12,8 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useChiron } from "@/lib/study/store";
 import { streamChat, type ChatMessage } from "@/lib/ai/providers";
 import {
-  DEFAULT_MODELS, PROVIDER_LABELS, loadAiSettings, saveAiSettings,
-  type AiProvider, type AiSettings,
+  DEFAULT_MODELS, PROVIDER_LABELS, loadAiSettings,
+  type AiSettings,
 } from "@/lib/ai/settings";
 import { buildSystemPrompt, estimateTokens } from "@/lib/ai/context";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,6 @@ export default function Aetheris() {
   const [sending, setSending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [tab, setTab] = useState<Tab>("overview");
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [settings, setSettings] = useState<AiSettings>(loadAiSettings);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -58,12 +58,6 @@ export default function Aetheris() {
   }, [messages, streamingText]);
 
   useEffect(() => () => window.speechSynthesis?.cancel(), []);
-
-  const updateSettings = (patch: Partial<AiSettings>) => {
-    const next = { ...settings, ...patch };
-    setSettings(next);
-    saveAiSettings(next);
-  };
 
   // Estimated token usage of the whole conversation-so-far, incl. the system
   // prompt — a chars/4 heuristic, not the provider's real tokenizer; labeled
@@ -159,17 +153,6 @@ export default function Aetheris() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setSettingsOpen((o) => !o)}
-            className={cn(
-              "grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:text-foreground",
-              settingsOpen && "border-secondary text-secondary",
-            )}
-            aria-label={A.provider}
-          >
-            <Settings2 className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
             onClick={() => setSidebarOpen((o) => !o)}
             className="hidden h-9 w-9 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:text-foreground lg:grid"
             aria-label={sidebarOpen ? A.tabHistory : A.tabOverview}
@@ -178,47 +161,6 @@ export default function Aetheris() {
           </button>
         </div>
       </header>
-
-      {settingsOpen && (
-        <div className="mb-4 flex shrink-0 flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-4">
-          <label className="flex flex-col gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-            {A.provider}
-            <select
-              value={settings.provider}
-              onChange={(e) => updateSettings({ provider: e.target.value as AiProvider, model: "" })}
-              className="rounded-md border border-border bg-surface-raised px-2 py-1.5 text-sm text-foreground"
-            >
-              {Object.entries(PROVIDER_LABELS).map(([id, label]) => (
-                <option key={id} value={id}>{label}</option>
-              ))}
-            </select>
-          </label>
-          {settings.provider !== "gemini-hosted" && settings.provider !== "openrouter-hosted" && settings.provider !== "ollama" && (
-            <label className="flex flex-1 flex-col gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-              {A.apiKey}
-              <input
-                type="password"
-                value={settings.apiKey}
-                onChange={(e) => updateSettings({ apiKey: e.target.value })}
-                placeholder="sk-…"
-                className="rounded-md border border-border bg-surface-raised px-2 py-1.5 text-sm text-foreground"
-              />
-            </label>
-          )}
-          <label className="flex flex-col gap-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-            {A.model}
-            <input
-              value={settings.model}
-              onChange={(e) => updateSettings({ model: e.target.value })}
-              placeholder={DEFAULT_MODELS[settings.provider]}
-              className="w-48 rounded-md border border-border bg-surface-raised px-2 py-1.5 text-sm text-foreground"
-            />
-          </label>
-          {(settings.provider === "gemini-hosted" || settings.provider === "openrouter-hosted") && (
-            <p className="text-[11px] text-secondary">{A.hostedNote}</p>
-          )}
-        </div>
-      )}
 
       <div className="flex min-h-0 flex-1 gap-5">
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card">
@@ -289,7 +231,9 @@ export default function Aetheris() {
 
           <div className="shrink-0 border-t border-border p-3">
             <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-1 pb-1.5 text-[10px] text-muted-foreground">
-              <span>{PROVIDER_LABELS[settings.provider]} · {settings.model.trim() || DEFAULT_MODELS[settings.provider]}</span>
+              <Link to="/settings" className="hover:text-foreground">
+                via {PROVIDER_LABELS[settings.provider]} · {settings.model.trim() || DEFAULT_MODELS[settings.provider]}
+              </Link>
               <span className="num" title={`${usedTokens} ${A.tokensEstimate}`}>
                 {contextPct}% {A.contextUsage} · {usedTokens.toLocaleString()} {A.tokensEstimate}
               </span>

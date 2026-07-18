@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sparkles, Sun } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DEFAULT_MODELS, PROVIDER_LABELS, loadAiSettings, saveAiSettings,
+  type AiProvider, type AiSettings,
+} from "@/lib/ai/settings";
 import { useT } from "@/lib/i18n/I18nProvider";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
@@ -14,56 +21,18 @@ function Section({ eyebrow, title, children }: { eyebrow: string; title: string;
   );
 }
 
-const AI_STORAGE = {
-  provider: "chiron.ai.provider",
-  apiKey: "chiron.ai.apiKey",
-  model: "chiron.ai.model",
-} as const;
-
-interface AISettings {
-  provider: string;
-  apiKey: string;
-  model: string;
-}
-
-function loadAI(): AISettings {
-  try {
-    return {
-      provider: localStorage.getItem(AI_STORAGE.provider) || "gemini-hosted",
-      apiKey: localStorage.getItem(AI_STORAGE.apiKey) || "",
-      model: localStorage.getItem(AI_STORAGE.model) || "",
-    };
-  } catch {
-    return { provider: "gemini-hosted", apiKey: "", model: "" };
-  }
-}
-
-function saveAI(s: AISettings) {
-  try {
-    localStorage.setItem(AI_STORAGE.provider, s.provider);
-    localStorage.setItem(AI_STORAGE.apiKey, s.apiKey);
-    localStorage.setItem(AI_STORAGE.model, s.model);
-  } catch { /* noop */ }
-}
-
-const PROVIDERS = [
-  { value: "gemini-hosted", label: "Gemini (cloud proxy)" },
-  { value: "openrouter-hosted", label: "OpenRouter (cloud proxy)" },
-  { value: "gemini", label: "Gemini (direct API key)" },
-  { value: "openai", label: "OpenAI (direct API key)" },
-];
-
 export default function Settings() {
   const { theme, setTheme } = useTheme();
   const t = useT();
   const L = t.chiron.settings;
-  const [ai, setAI] = useState<AISettings>(loadAI);
-  const [saved, setSaved] = useState(false);
+  const [ai, setAi] = useState<AiSettings>(loadAiSettings);
 
-  function handleSave() {
-    saveAI(ai);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  function patchAi(patch: Partial<AiSettings>) {
+    setAi((s) => {
+      const next = { ...s, ...patch };
+      saveAiSettings(next);
+      return next;
+    });
   }
 
   return (
@@ -95,50 +64,44 @@ export default function Settings() {
         </div>
       </Section>
 
-      <Section eyebrow="IA" title="Configuração de IA">
-        <div className="space-y-4">
-          <div>
-            <label className="text-xs text-muted-foreground">Provedor</label>
-            <select
-              value={ai.provider}
-              onChange={(e) => setAI((p) => ({ ...p, provider: e.target.value }))}
-              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
-            >
-              {PROVIDERS.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-            </select>
+      <Section eyebrow={L.aetherisEyebrow} title={L.aetherisTitle}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{L.provider}</Label>
+            <Select value={ai.provider} onValueChange={(v) => patchAi({ provider: v as AiProvider, model: "" })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {(Object.keys(PROVIDER_LABELS) as AiProvider[]).map((p) => (
+                  <SelectItem key={p} value={p}>{PROVIDER_LABELS[p]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          {ai.provider !== "gemini-hosted" && ai.provider !== "openrouter-hosted" && (
-            <div>
-              <label className="text-xs text-muted-foreground">API Key</label>
-              <input
-                type="password"
-                value={ai.apiKey}
-                onChange={(e) => setAI((p) => ({ ...p, apiKey: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
-                placeholder="sk-..."
-              />
+          <div className="space-y-2">
+            <Label htmlFor="ai-model" className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{L.model}</Label>
+            <Input id="ai-model" value={ai.model} onChange={(e) => patchAi({ model: e.target.value })} placeholder={DEFAULT_MODELS[ai.provider]} disabled={ai.provider === "gemini-hosted" || ai.provider === "openrouter-hosted"} />
+          </div>
+          {ai.provider === "gemini-hosted" || ai.provider === "openrouter-hosted" ? (
+            <div className="flex items-center gap-2 rounded-md border border-secondary/30 bg-secondary/10 p-3 text-xs text-muted-foreground sm:col-span-2">
+              <Sparkles className="h-3.5 w-3.5 shrink-0 text-secondary" />
+              {L.hostedNote}
+            </div>
+          ) : ai.provider !== "ollama" ? (
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="ai-key" className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{L.apiKey}</Label>
+              <Input id="ai-key" type="password" value={ai.apiKey} onChange={(e) => patchAi({ apiKey: e.target.value })} placeholder={L.apiKeyPlaceholder} />
+            </div>
+          ) : (
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="ai-url" className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{L.ollamaUrl}</Label>
+              <Input id="ai-url" value={ai.baseUrl} onChange={(e) => patchAi({ baseUrl: e.target.value })} placeholder="http://localhost:11434" />
             </div>
           )}
-          <div>
-            <label className="text-xs text-muted-foreground">Modelo (opcional)</label>
-            <input
-              type="text"
-              value={ai.model}
-              onChange={(e) => setAI((p) => ({ ...p, model: e.target.value }))}
-              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
-              placeholder="gemini-3.1-flash-lite"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={handleSave}
-            className="rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:opacity-90"
-          >
-            {saved ? "Salvo!" : "Salvar"}
-          </button>
         </div>
+        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <Sparkles className="h-3 w-3 text-secondary" />
+          {L.keysNote}
+        </p>
       </Section>
     </div>
   );
