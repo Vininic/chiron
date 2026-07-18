@@ -1,7 +1,7 @@
 import { useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, Sparkles, Text3D, Center, OrbitControls } from "@react-three/drei";
-import type { Mesh } from "three";
+import { Float, Sparkles } from "@react-three/drei";
+import type { Group, Mesh } from "three";
 
 function BookPage({ position, rotation, color, width = 2, height = 2.8, depth = 0.04 }: {
   position: [number, number, number];
@@ -34,7 +34,7 @@ function BookCover({ position, rotation, color }: {
 }
 
 function FloatingQuill() {
-  const ref = useRef<Mesh>(null);
+  const ref = useRef<Group>(null);
   useFrame((state) => {
     if (!ref.current) return;
     ref.current.position.y = Math.sin(state.clock.elapsedTime * 1.5) * 0.15;
@@ -42,7 +42,7 @@ function FloatingQuill() {
   });
 
   return (
-    <group ref={ref as any} position={[1.8, 0.5, 0]}>
+    <group ref={ref} position={[1.8, 0.5, 0]}>
       <mesh position={[0, 0.6, 0]} rotation={[0.2, 0.3, -0.3]}>
         <coneGeometry args={[0.04, 0.6, 6]} />
         <meshStandardMaterial color="#A63446" roughness={0.3} metalness={0.4} />
@@ -120,16 +120,13 @@ function TomeScene() {
 
 export default function Tome() {
   return (
-    <div className="h-full w-full">
-      <Canvas camera={{ position: [0, 0.5, 5], fov: 40 }}>
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[2, 3, 4]} intensity={0.8} />
-        <directionalLight position={[-2, 1, -1]} intensity={0.3} color="#A63446" />
-        <Float speed={2} rotationIntensity={0.2} floatIntensity={0.3}>
-          <TomeScene />
-        </Float>
-        <OrbitControls enableZoom={false} enablePan={false} rotateSpeed={0.5} />
-      </Canvas>
-    </div>
+    <Canvas camera={{ position: [0, 0.5, 5], fov: 40 }} dpr={[1, 2]}>
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[2, 3, 4]} intensity={0.8} />
+      <directionalLight position={[-2, 1, -1]} intensity={0.3} color="#A63446" />
+      <Float speed={2} rotationIntensity={0.2} floatIntensity={0.3}>
+        <TomeScene />
+      </Float>
+    </Canvas>
   );
 }

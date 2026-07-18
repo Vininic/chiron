@@ -1,13 +1,11 @@
-import { lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import Logo, { ChironMark } from "@/components/ChironLogo";
+import Tome from "@/components/three/Tome";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n/I18nProvider";
-
-const TomePlaceholder = lazy(() => import("@/components/three/TomePlaceholder"));
 
 const CHRONOS_URL = "https://github.com/Vininic/chronos-the-art-of-time";
 
@@ -81,13 +79,7 @@ export default function Landing() {
         </div>
         <div className="relative h-[420px] md:h-[520px] lg:col-span-5">
           <div className="bg-ink absolute inset-0 overflow-hidden rounded-[28px] shadow-elevated">
-            <Suspense fallback={
-              <div className="grid h-full w-full place-items-center">
-                <ChironMark className="h-32 w-32 text-secondary-soft opacity-90" />
-              </div>
-            }>
-              <TomePlaceholder />
-            </Suspense>
+            <Tome />
           </div>
         </div>
       </section>
