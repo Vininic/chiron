@@ -1,0 +1,6 @@
+# Never upload local tooling to Vercel: authoring scripts, downloaded third-party
+# docs, and the browser profiles the scrapers left under scripts/ (5+ GB, and
+# browser profiles can hold cookies/sessions). Git already ignores the profiles via
+# a nested .gitignore, which the Vercel CLI does not read.
+scripts/
+dist/
