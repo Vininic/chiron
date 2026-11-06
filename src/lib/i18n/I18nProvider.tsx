@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { DEFAULT_LOCALE, DICTIONARIES, LOCALE_LABELS, SUPPORTED_LOCALES, type Dictionary, type Locale } from "./dictionaries";
+import { SHELL_DICTIONARIES, type ShellDictionary } from "./shell";
 
 export type { Locale };
 
@@ -67,4 +68,11 @@ export function useDateFormat() {
       return new Intl.DateTimeFormat(bcp47, { dateStyle: "medium" }).format(d);
     },
   }), [bcp47]);
+}
+
+/** The shared suite-shell vocabulary (settings dialog and the chrome around
+ *  it). Separate from `useT` so the shell strings stay copyable app to app —
+ *  see olympus-plan/SUITE-SHELL.md. */
+export function useShell(): ShellDictionary {
+  return SHELL_DICTIONARIES[useI18n().locale];
 }

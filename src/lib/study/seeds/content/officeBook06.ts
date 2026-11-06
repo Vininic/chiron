@@ -1,0 +1,292 @@
+// Pacote Office, reescrita autoral (PLANO.md §R.2) — capítulo 6.
+import { code, porque, prose, quebraria, type ContentCard, type ContentChapter, type ContentExercise } from "./types";
+
+const NODE = "Excel: matrizes dinâmicas, LET e LAMBDA";
+
+const dados = (rotulo: string) => [
+  `Sala;Pessoas;${rotulo}`,
+  "Atenas;12;540",
+  "Delfos;8;240",
+  "Tebas;25;750",
+  "Atenas;5;225",
+  "Delfos;10;300",
+];
+
+export const OFFICE_BOOK_06: ContentChapter = {
+  title: NODE,
+  level: "avancado",
+  nodeTitle: NODE,
+  nodeKind: "concept",
+  sections: [
+    {
+      title: "Matrizes dinâmicas: uma fórmula, vários resultados",
+      order: 0,
+      blocks: [
+        prose([
+          "Até a versão 2019, uma fórmula do Excel devolvia **um** valor, na célula em que estava. Para produzir uma lista era preciso arrastar a fórmula por várias células, ou usar as pesadas *fórmulas de matriz* com `Ctrl+Shift+Enter`. No Microsoft 365 e nas versões recentes, uma fórmula pode devolver uma **matriz** inteira, e o Excel a *derrama* (*spill*) automaticamente pelas células vizinhas: a fórmula é escrita uma só vez, na primeira célula, e o resultado ocupa quantas linhas e colunas forem necessárias. Essa mudança, as **matrizes dinâmicas**, é a maior que o Excel teve em décadas, e abre uma forma nova de trabalhar: perguntas sobre os dados viram uma fórmula, e a resposta se ajusta quando os dados mudam.",
+          "",
+          "As funções criadas para isso, em português, são poucas e se complementam. **`FILTRO(matriz; condição; [se_vazio])`** devolve as linhas que atendem à condição: `=FILTRO(A2:C6;B2:B6>9)` devolve, com todas as colunas, as reservas com mais de dez pessoas. **`CLASSIFICAR(matriz; [índice]; [ordem])`** ordena, com o índice da coluna de ordenação e a ordem 1 (crescente) ou −1 (decrescente): `=CLASSIFICAR(A2:C6;2;-1)` ordena a lista pelas pessoas, da maior para a menor. **`CLASSIFICARPOR`** ordena uma matriz por outra, com intervalos separados. **`ÚNICO`** remove as repetições, e com o terceiro argumento verdadeiro devolve só os valores que aparecem **uma única vez**. **`SEQUÊNCIA(linhas; [colunas]; [início]; [passo])`** gera uma sequência numérica. **`TRANSPOR`** troca linhas por colunas, e **`PEGAR`** e **`DESCARTAR`** ficam com as primeiras linhas, ou as retiram. Todas aceitam as demais como argumento, o que permite encadear: `=CLASSIFICAR(FILTRO(...);2;-1)` filtra e depois ordena.",
+          "",
+          "O resultado ocupa o chamado **intervalo de derramamento**, e só a primeira célula guarda a fórmula: as demais mostram valores, que não podem ser editados diretamente. Para se referir ao resultado inteiro em outra fórmula, escreve-se o endereço da primeira célula seguido de `#`: `M2#` é o intervalo derramado a partir de `M2`, qualquer que seja o seu tamanho no momento. É esse operador que permite que uma segunda fórmula acompanhe a primeira: `=SOMA(N2#)` soma tudo o que `N2` derramou, e se o resultado crescer, a soma também cresce.",
+          "",
+          "O derramamento exige **espaço livre**. Se uma célula do caminho tem qualquer conteúdo, a fórmula devolve **`#DESPEJAR!`**, o erro que o Excel em português usa, e nenhuma parte do resultado aparece. A solução é limpar a célula que bloqueia; o Excel indica qual é, com o botão de aviso ao lado da célula. É uma das razões para reservar uma área só para os resultados, sem dados abaixo ou ao lado. O erro também aparece se o resultado deveria cair dentro de uma Tabela do Excel, como o capítulo 3 mostrou, ou em células mescladas.",
+          "",
+          "Um segundo erro novo, **`#CALC!`**, indica que o resultado seria uma matriz vazia. Um `FILTRO` cuja condição não atinge nenhuma linha devolve `#CALC!`, e o terceiro argumento, o `se_vazio`, é a forma de tratar o caso: `=FILTRO(B2:B6;B2:B6>99;\"nenhuma\")` devolve a mensagem. Como em `SENÃODISP`, a ausência esperada pode ser tratada sem esconder outros erros.",
+          "",
+          "A conta que mais surpreende é a de **compatibilidade**. As funções de matriz dinâmica existem no Microsoft 365 e nas versões recentes do Excel, mas não nas anteriores à 2021. Um arquivo que as usa, aberto em uma versão antiga, mostra os resultados em cache, que continuam visíveis, e os troca por `#NOME?` assim que as fórmulas são recalculadas. O arquivo marca a diferença: a fórmula é gravada como `_xlfn._xlws.FILTER(...)`, uma **fórmula de matriz** com o intervalo do derramamento no atributo `ref`, e a célula recebe o atributo `cm=\"1\"`, que aponta para uma parte `xl/metadata.xml` chamada de *propriedades de matriz dinâmica*. As células seguintes do derramamento guardam apenas os valores.",
+          "",
+          "O exemplo reúne as funções principais sobre a lista de reservas.",
+        ]),
+        code("csv", dados("Total"), "Reservas!A1: cinco reservas"),
+        code("excel", [
+          "E2: =FILTRO(A2:C6;B2:B6>9)",
+          "I2: =CLASSIFICAR(A2:C6;2;-1)",
+          "M2: =CLASSIFICARPOR(A2:A6;B2:B6;-1)",
+          "O2: =SEQUÊNCIA(3;2;10;5)",
+          "R2: =ÚNICO(A2:A6)",
+          "S2: =ÚNICO(A2:A6;;VERDADEIRO)",
+          "T2: =FILTRO(B2:B6;B2:B6>99)",
+          "U2: =FILTRO(B2:B6;B2:B6>99;\"nenhuma\")",
+        ], "FILTRO, CLASSIFICAR, CLASSIFICARPOR, SEQUÊNCIA e ÚNICO, cada um com espaço livre"),
+        code("text", [
+          "E2# = Atenas | 12 | 540 / Tebas | 25 | 750 / Delfos | 10 | 300",
+          "I2# = Tebas | 25 | 750 / Atenas | 12 | 540 / Delfos | 10 | 300 / Delfos | 8 | 240 / Atenas | 5 | 225",
+          "M2# = Tebas / Atenas / Delfos / Delfos / Atenas",
+          "O2# = 10 | 15 / 20 | 25 / 30 | 35",
+          "R2# = Atenas / Delfos / Tebas",
+          "S2 = Tebas",
+          "T2 = #CALC!",
+          "U2 = nenhuma",
+          "formula:E2 = =FILTRO(A2:C6;B2:B6>9)",
+          "formula:F2 = ",
+        ], "Resultado: cada fórmula se espalha; só a primeira célula guarda a fórmula"),
+        code("excel", [
+          "R4: bloqueio",
+        ], "Uma célula ocupada no caminho do ÚNICO"),
+        code("text", [
+          "R2 = #DESPEJAR!",
+          "R3 = ",
+          "R4 = bloqueio",
+        ], "Resultado: o derramamento falha inteiro, e nada aparece"),
+        prose([
+          "O `FILTRO` devolveu as três reservas com mais de dez pessoas, com as três colunas; o `CLASSIFICAR` reordenou as cinco linhas inteiras, e o `CLASSIFICARPOR` ordenou só a coluna das salas pela das pessoas. A `SEQUÊNCIA` produziu uma grade de três linhas e duas colunas que começa em 10 e avança de cinco em cinco. O `ÚNICO` achou três salas, e com o terceiro argumento verdadeiro ficou só com a que aparece uma vez, Tebas, que é um valor único e não se derrama.",
+          "",
+          "O filtro sem resultados devolveu `#CALC!`; com o `se_vazio`, a mensagem. Só `E2` guarda a fórmula, e `F2`, que faz parte do derramamento, está sem fórmula. Ao colocar um valor em `R4`, no caminho dos três nomes que `R2` espalhava, a fórmula inteira falhou com `#DESPEJAR!`, e as duas células abaixo ficaram vazias.",
+        ]),
+        porque([
+          "Uma fórmula que devolve uma matriz se derrama a partir da primeira célula; `célula#` se refere ao resultado inteiro. Reserve espaço livre: uma célula ocupada no caminho dá `#DESPEJAR!`. Um filtro vazio dá `#CALC!` (trate com `se_vazio`). Essas funções só existem no Microsoft 365 e nas versões recentes.",
+        ]),
+        quebraria([
+          "Uma planilha de relatório tem um `FILTRO` no meio da página, e logo abaixo dele fica uma linha de totais digitada à mão. Em março o filtro devolve uma linha a mais que em fevereiro, esbarra nos totais e cai em `#DESPEJAR!`: o relatório inteiro da regional fica em branco na véspera da reunião.",
+        ]),
+      ],
+    },
+    {
+      title: "Resumos vivos: ÚNICO, SOMASES e EMPILHARH sobre uma Tabela",
+      order: 1,
+      blocks: [
+        prose([
+          "A primeira aplicação prática das matrizes dinâmicas é a que mais economiza trabalho: o **resumo por categoria**. Antes, para saber o total por sala, era preciso criar uma tabela dinâmica ou digitar a lista de salas e uma `SOMASES` para cada uma, e a lista tinha de ser atualizada à mão quando surgisse uma sala nova. Com as matrizes, a própria lista de categorias é calculada: `=ÚNICO(Reservas[Sala])` devolve as salas sem repetição, e as colunas ao lado se referem a elas com `#`.",
+          "",
+          "O desenho é sempre o mesmo, em três passos. No primeiro, uma fórmula devolve a lista de categorias distintas. No segundo, outras fórmulas calculam, para a lista inteira de uma só vez, as medidas que interessam. `=SOMASES(Reservas[Valor];Reservas[Sala];M2#)` recebe como critério a matriz `M2#` e devolve uma matriz, com a soma para cada sala, e `=CONT.SES(Reservas[Sala];M2#)` conta as reservas de cada uma. A novidade é que os critérios, que antes eram um valor, agora podem ser uma matriz, e a função devolve uma matriz do mesmo tamanho. No terceiro, as colunas são reunidas num bloco só com **`EMPILHARH`** (*juntar na horizontal*), `=EMPILHARH(M2#;N2#;O2#)`, e o bloco pode ser classificado, filtrado ou transposto como qualquer outra matriz: `=CLASSIFICAR(U2#;2;-1)` ordena o resumo pelo valor total, do maior para o menor.",
+          "",
+          "O ganho decisivo aparece quando o dado muda. Se a lista de origem é uma **Tabela do Excel**, a nova linha digitada logo abaixo é absorvida por ela, e todas as fórmulas que se baseiam em `Reservas[Sala]` e `Reservas[Valor]` se ajustam sem edição: uma sala nova aparece na lista de categorias, ganha sua soma e sua contagem, e o resumo ordenado se reorganiza. Isso substitui, para boa parte dos relatórios, a tabela dinâmica do próximo capítulo, com a vantagem de ser **fórmula**: ela se recalcula sozinha, enquanto a tabela dinâmica precisa ser atualizada. A desvantagem é a de qualquer fórmula: é mais difícil de explorar interativamente, e o resumo que ela produz tem a forma que a fórmula determina, sem os recursos de arrastar campos.",
+          "",
+          "Há cuidados na escolha do local. O resumo deve ficar numa **área própria** (de preferência outra planilha), sem nada abaixo ou ao lado, já que o derramamento cresce com os dados. As fórmulas das colunas dependentes devem ficar **alinhadas** com a lista de categorias: cada uma começa na mesma linha de `ÚNICO` e usa o mesmo `#`; se alguém inserir uma linha no meio do bloco, o desalinhamento é um erro silencioso. E convém que o `ÚNICO` seja aplicado à **coluna limpa**: espaços no fim ou diferenças de maiúsculas criam categorias duplicadas, como o capítulo anterior mostrou ao tratar chaves sujas, e o `ÚNICO` não diferencia maiúsculas mas diferencia espaços.",
+          "",
+          "A mesma ideia serve para **valores únicos** em listas de validação: uma célula com `=ÚNICO(Reservas[Sala])` alimenta uma lista suspensa, que se ajusta sozinha quando surge uma sala nova, se a regra de validação apontar para `M2#`. E para a **ordenação por vários critérios**: `CLASSIFICARPOR(matriz; chave1; ordem1; chave2; ordem2)` ordena por uma coluna e desempata por outra, o que antes exigia a caixa de diálogo de classificação.",
+          "",
+          "O exemplo cria o resumo, acrescenta uma reserva de uma sala nova e mostra o resumo se ajustar.",
+        ]),
+        code("csv", dados("Valor"), "Reservas!A1: cinco reservas, que o Excel transforma em Tabela"),
+        code("excel", [
+          "Tabela: Reservas = A1:C6",
+          "M2: =ÚNICO(Reservas[Sala])",
+          "N2: =SOMASES(Reservas[Valor];Reservas[Sala];M2#)",
+          "O2: =CONT.SES(Reservas[Sala];M2#)",
+          "P2: =SOMA(N2#)",
+          "R2: =EMPILHARH(M2#;N2#;O2#)",
+          "V2: =CLASSIFICAR(R2#;2;-1)",
+        ], "O resumo: salas, soma, contagem, o bloco reunido e o bloco ordenado"),
+        code("text", [
+          "M2# = Atenas / Delfos / Tebas",
+          "N2# = 765 / 540 / 750",
+          "O2# = 2 / 2 / 1",
+          "P2 = 2055",
+          "R2# = Atenas | 765 | 2 / Delfos | 540 | 2 / Tebas | 750 | 1",
+          "V2# = Atenas | 765 | 2 / Tebas | 750 | 1 / Delfos | 540 | 2",
+        ], "Resultado: o resumo por sala e o resumo ordenado pelo valor"),
+        code("excel", [
+          "A7: Olímpia",
+          "B7: 3",
+          "C7: 100",
+        ], "Uma reserva de uma sala nova, digitada logo abaixo da Tabela"),
+        code("text", [
+          "A1:C7 = Sala | Pessoas | Valor / Atenas | 12 | 540 / Delfos | 8 | 240 / Tebas | 25 | 750 / Atenas | 5 | 225 / Delfos | 10 | 300 / Olímpia | 3 | 100",
+          "M2# = Atenas / Delfos / Tebas / Olímpia",
+          "N2# = 765 / 540 / 750 / 100",
+          "O2# = 2 / 2 / 1 / 1",
+          "P2 = 2155",
+          "V2# = Atenas | 765 | 2 / Tebas | 750 | 1 / Delfos | 540 | 2 / Olímpia | 100 | 1",
+        ], "Resultado: o resumo ganhou a nova sala sem nenhuma edição de fórmula"),
+        prose([
+          "O resumo mostrou Atenas, Delfos e Tebas com 765, 540 e 750, e as contagens 2, 2 e 1; a soma de tudo, 2.055, também veio de uma fórmula sobre o resultado derramado. O bloco reunido tem as três colunas e o bloco classificado pôs Atenas, com o maior valor, no topo.",
+          "",
+          "A linha nova da Olímpia foi absorvida pela Tabela. A lista de salas ganhou um quarto item, as somas e contagens se estenderam, o total passou a 2.155 e o resumo ordenado acomodou a nova sala no fim. Nenhuma das fórmulas foi tocada.",
+        ]),
+        porque([
+          "Para um resumo por categoria: `ÚNICO` da coluna, `SOMASES`/`CONT.SES` com a lista como critério (`M2#`) e `EMPILHARH` para reunir. Sobre uma Tabela, o resumo acompanha as linhas novas. Dê ao resumo uma área própria e dados limpos.",
+        ]),
+        quebraria([
+          "O resumo por vendedor usa `ÚNICO` sobre uma coluna em que \"Ana\" e \"Ana \" (com espaço) coexistem. O relatório mostra duas Anas, cada uma com metade das vendas, e a comissão da melhor vendedora do trimestre sai pela metade.",
+        ]),
+      ],
+    },
+    {
+      title: "LET: dar nome às etapas de um cálculo",
+      order: 2,
+      blocks: [
+        prose([
+          "Fórmulas longas têm dois problemas conhecidos: são difíceis de ler e repetem o mesmo cálculo várias vezes. Quem quer a média dos valores de Atenas escreve `=SOMA(FILTRO(C2:C6;A2:A6=\"Atenas\"))/CONT.NÚM(FILTRO(C2:C6;A2:A6=\"Atenas\"))`, em que o mesmo `FILTRO` aparece duas vezes. Uma alteração na condição exige alterar os dois lugares, e esquecer um deles gera um resultado errado sem aviso. A função **`LET`** resolve os dois problemas: permite dar um **nome** a um valor ou a um cálculo dentro da própria fórmula, e usar o nome no resto dela.",
+          "",
+          "A sintaxe é uma lista de pares de nome e valor, terminada por uma expressão final: `LET(nome1; valor1; nome2; valor2; ...; cálculo)`. O cálculo final usa os nomes, e o resultado da fórmula é o valor do cálculo. A média de Atenas fica `=LET(lista;FILTRO(C2:C6;A2:A6=\"Atenas\");SOMA(lista)/CONT.NÚM(lista))`: o `FILTRO` é escrito e calculado **uma vez**, recebe o nome `lista`, e é usado duas vezes. Mudar de Atenas para Delfos é uma alteração só. E a fórmula se lê de cima para baixo, como uma receita: primeiro a lista, depois a conta.",
+          "",
+          "Os nomes do `LET` valem **apenas dentro da fórmula** em que foram definidos. Não aparecem no Gerenciador de Nomes, não podem ser usados em outras células e desaparecem ao fim da fórmula. Um nome pode usar o valor de nomes anteriores: `LET(x;2;y;x*3;x+y)` define `x` como 2, `y` como 6 e devolve 8. A mesma regra de nomes do capítulo 3 vale em parte: precisam começar por letra e não podem se parecer com endereços de célula, por isso um nome como `mês1` ou `x1` é recusado, e `lista`, `total` ou `p` são seguros. Nomes que repetem um nome definido da pasta de trabalho ocultam o nome de fora dentro da fórmula, o que pode confundir.",
+          "",
+          "O `LET` melhora o **desempenho** em fórmulas pesadas: um cálculo caro (uma busca em milhares de linhas, uma classificação, um filtro) é executado uma vez, e não a cada ocorrência. Em planilhas grandes, trocar três repetições de um `PROCX` por um `LET` pode reduzir o tempo de recálculo à terça parte. Mas o objetivo principal é a **legibilidade**: nomes como `total`, `parte` e `lista` documentam a intenção, e a fórmula passa a se explicar. A regra prática é usar `LET` quando o mesmo pedaço aparece mais de uma vez, ou quando a fórmula tem mais de três ou quatro níveis de parênteses.",
+          "",
+          "Dois cuidados. O primeiro: o `LET` não torna a fórmula mais curta nem substitui um intervalo bem nomeado. Para um valor que é usado em muitas células diferentes, o nome definido da pasta de trabalho continua sendo a ferramenta. O `LET` serve ao cálculo contido numa célula. O segundo: como `LET` é uma função nova, ela é gravada no arquivo com o prefixo `_xlfn.` e, mais curiosamente, os nomes que ela define recebem o prefixo `_xlpm.` (de *parâmetro*): `_xlfn.LET(_xlpm.x,2,_xlpm.y,_xlpm.x*3,_xlpm.x+_xlpm.y)`. Uma versão que não conhece a função mostra `#NOME?`, como acontece com todas as desta família.",
+          "",
+          "Um uso frequente do `LET` é *limpar uma vez e reaproveitar*: `LET(chave; ARRUMAR(A2); ...)` aplica o tratamento de espaços do capítulo anterior à chave e usa a versão limpa nas etapas seguintes, sem repetir `ARRUMAR` em cada ponto. E como os nomes dividem a fórmula em etapas, ela pode ser quebrada em linhas na barra de fórmulas com `Alt+Enter`, uma etapa por linha, e recuada para leitura; as quebras e os espaços extras não alteram o resultado, e transformam uma expressão de uma linha só em algo parecido com um pequeno programa.",
+          "",
+          "O exemplo calcula quatro indicadores sobre a lista de reservas com `LET`, e mostra como o arquivo guarda a função.",
+        ]),
+        code("csv", dados("Receita"), "Reservas!A1: cinco reservas"),
+        code("excel", [
+          "E2: =LET(total;SOMA(C2:C6);C2/total)",
+          "E3: =LET(p;B2:B6;v;C2:C6;SOMARPRODUTO(p;v)/SOMA(p))",
+          "E4: =LET(x;2;y;x*3;x+y)",
+          "E5: =LET(lista;FILTRO(C2:C6;A2:A6=\"Atenas\");SOMA(lista)/CONT.NÚM(lista))",
+          "Formato: E2 = 0,0%",
+          "Salvar como: let.xlsx",
+        ], "Quatro fórmulas com LET: participação, média ponderada, nomes encadeados e a média de Atenas"),
+        code("text", [
+          "E2 = 26,3%",
+          "E3 = 521,25",
+          "E4 = 8",
+          "E5 = 382,5",
+          "formula:E5 = =LET(lista;FILTRO(C2:C6;A2:A6=\"Atenas\");SOMA(lista)/CONT.NÚM(lista))",
+          "parte:let.xlsx!xl/worksheets/sheet1.xml contém: <f>_xlfn.LET(_xlpm.x,2,_xlpm.y,_xlpm.x*3,_xlpm.x+_xlpm.y)</f>",
+        ], "Resultado: os valores, a fórmula como se digita e como o arquivo a guarda"),
+        prose([
+          "A primeira fórmula deu a participação da primeira reserva no total, 26,3%, porque o 540 representa essa fração dos 2.055. A segunda deu 521,25, o valor por pessoa ponderado pelo número de pessoas. A terceira mostrou os nomes encadeados, `x` e `y`, e a quarta, a média dos valores de Atenas, 382,5, com o `FILTRO` calculado uma só vez.",
+          "",
+          "No arquivo, a função e os nomes dos parâmetros ganharam prefixos (`_xlfn.LET`, `_xlpm.x`), e as vírgulas substituíram os pontos e vírgulas: o XML sempre grava no padrão do inglês.",
+        ]),
+        porque([
+          "`LET(nome;valor;...;cálculo)` evita repetir um cálculo, deixa a fórmula legível e roda o cálculo caro uma vez. Os nomes valem só dentro da fórmula e não podem parecer endereços (`x1`). Não substitui o nome definido para valores usados em muitas células.",
+        ]),
+        quebraria([
+          "Uma fórmula de comissão repete o mesmo `PROCX` em quatro lugares. Quando a tabela de alíquotas muda de coluna, o analista corrige três e esquece o quarto: a faixa de comissão mais alta passa a usar a alíquota antiga, sem nenhum erro, e os melhores vendedores recebem a mais por dois trimestres.",
+        ]),
+      ],
+    },
+    {
+      title: "LAMBDA e as funções que a usam: criar e reaproveitar fórmulas",
+      order: 3,
+      blocks: [
+        prose([
+          "O `LET` dá nomes a valores dentro de uma fórmula. A **`LAMBDA`** dá nome ao próprio *cálculo*, para reusá-lo com valores diferentes: é a forma de o usuário do Excel criar suas funções, sem macros. A sintaxe é `LAMBDA(parâmetro1; parâmetro2; ...; cálculo)`, e a função se usa chamando-a com os valores logo depois da definição: `=LAMBDA(x;x*2)(4)` devolve 8. Escrita assim, no meio de uma célula, ela serve para testar; o valor aparece quando a LAMBDA é **guardada com um nome**.",
+          "",
+          "O nome é definido no Gerenciador de Nomes (*Fórmulas > Definir Nome*), com a LAMBDA no campo \"Refere-se a\". Um nome `Margem` que se refere a `=LAMBDA(v;c;(v-c)/v)` passa a existir como função em toda a pasta de trabalho: `=Margem(100;60)` devolve 0,4, a margem de uma venda de 100 com custo de 60. A fórmula de cálculo fica num só lugar. Se a regra mudar, por exemplo para incluir um imposto, o ajuste é feito no Gerenciador de Nomes e vale para todas as células que a usam, o que é uma vantagem enorme sobre copiar a mesma expressão por centenas de linhas e esquecer de corrigir algumas.",
+          "",
+          "A LAMBDA se junta a um conjunto de funções que a recebem como argumento. Em português, elas mantêm os nomes em inglês. **`MAP(matriz; LAMBDA(x; ...))`** aplica o cálculo a cada elemento e devolve uma matriz do mesmo tamanho: `=MAP(B2:B6;LAMBDA(x;x*2))` dobra cada valor. **`REDUCE(início; matriz; LAMBDA(acumulado; valor; ...))`** percorre a matriz acumulando um resultado: com início 0 e a soma como cálculo, devolve o total. **`SCAN`** faz o mesmo e devolve **todos** os acumulados: a soma corrente, 12, 20, 45, 50, 60. **`BYROW`** e **`BYCOL`** aplicam um cálculo a cada linha, ou a cada coluna, de uma matriz, e **`MAKEARRAY(linhas; colunas; LAMBDA(l; c; ...))`** constrói uma matriz a partir de uma fórmula para cada posição. Essas funções são a base do que seria um \"laço\" em programação, dentro da fórmula: há quem escreva relatórios inteiros com elas.",
+          "",
+          "A pergunta honesta é se vale a pena. O ganho existe quando um cálculo se repete com valores diferentes, quando se quer uma regra de negócio em um único lugar ou quando as funções prontas não fazem o que se precisa. O custo também existe: LAMBDA nomeadas moram no Gerenciador de Nomes, longe do olhar de quem lê a planilha, e uma fórmula `=Margem(D2;E2)` não diz o que `Margem` calcula sem que se vá abrir o nome. Documentar a regra numa célula de legenda, na planilha, ou no comentário do nome, é parte do trabalho. E quem recebe o arquivo precisa de uma versão do Excel que tenha a função.",
+          "",
+          "A **compatibilidade** exige o maior cuidado do capítulo. `LET`, `LAMBDA` e as funções auxiliares são de versões recentes; planilhas que dependem delas não funcionam em versões antigas. Quando o arquivo circula entre pessoas e versões diferentes, a alternativa é voltar ao que todo Excel tem: `SOMARPRODUTO`, `ÍNDICE`, `CORRESP`, as funções com critérios. O arquivo grava a LAMBDA nomeada como um nome definido com o prefixo `_xlfn.LAMBDA` e os parâmetros com `_xlpm.`, e as células que a chamam, como fórmulas de matriz. Abrir esse arquivo numa versão antiga mostra `#NOME?`.",
+          "",
+          "O exemplo define uma `LAMBDA` com nome, usa a função nas células e percorre uma coluna com `MAP`, `REDUCE`, `SCAN`, `BYROW`, `BYCOL` e `MAKEARRAY`.",
+        ]),
+        code("csv", dados("Faturamento"), "Reservas!A1: cinco reservas"),
+        code("excel", [
+          "Nome: Margem = =LAMBDA(v;c;(v-c)/v)",
+          "E2: =Margem(100;60)",
+          "E3: =LAMBDA(x;x*2)(4)",
+          "G2: =MAP(B2:B6;LAMBDA(x;x*2))",
+          "I2: =REDUCE(0;B2:B6;LAMBDA(a;v;a+v))",
+          "K2: =SCAN(0;B2:B6;LAMBDA(a;v;a+v))",
+          "M2: =BYROW(B2:C3;LAMBDA(r;SOMA(r)))",
+          "O2: =BYCOL(B2:C3;LAMBDA(c;SOMA(c)))",
+          "R2: =MAKEARRAY(2;2;LAMBDA(l;c;l*c))",
+          "Salvar como: lambda.xlsx",
+        ], "Uma LAMBDA com nome, uma anônima e as funções que a recebem"),
+        code("text", [
+          "E2 = 0,4",
+          "E3 = 8",
+          "G2# = 24 / 16 / 50 / 10 / 20",
+          "I2 = 60",
+          "K2# = 12 / 20 / 45 / 50 / 60",
+          "M2# = 552 / 248",
+          "O2# = 20 | 780",
+          "R2# = 1 | 2 / 2 | 4",
+          "nomes:todos = Margem = =LAMBDA(v;c;(v-c)/v)",
+          "parte:lambda.xlsx!xl/workbook.xml contém: <definedName name=\"Margem\">_xlfn.LAMBDA(_xlpm.v,_xlpm.c,(_xlpm.v-_xlpm.c)/_xlpm.v)</definedName>",
+        ], "Resultado: os valores e o nome definido, como o Gerenciador de Nomes o mostra e como o arquivo o guarda"),
+        prose([
+          "A função `Margem`, definida uma vez, devolveu 0,4 para venda 100 e custo 60. A LAMBDA anônima, chamada na hora, deu 8. O `MAP` dobrou os cinco valores; o `REDUCE` somou-os, 60, e o `SCAN` mostrou a soma corrente, passo a passo. O `BYROW` somou cada linha do bloco de pessoas e valores, 552 e 248, e o `BYCOL`, cada coluna, 20 e 780. O `MAKEARRAY` montou a tabuada de dois por dois.",
+          "",
+          "No arquivo, a LAMBDA é um nome definido, com os parâmetros marcados `_xlpm.` e a função, `_xlfn.LAMBDA`, o que explica por que uma versão que não a conhece mostra `#NOME?`. As vírgulas aparecem no lugar dos pontos e vírgulas, como em todo XML do Excel.",
+        ]),
+        porque([
+          "`LAMBDA` cria funções próprias; guardada em um nome (`Margem`), a regra fica num lugar só. `MAP`, `REDUCE`, `SCAN`, `BYROW`, `BYCOL` e `MAKEARRAY` (nomes em inglês) a recebem. Documente o que a função faz e lembre que só funciona em versões recentes do Excel.",
+        ]),
+        quebraria([
+          "Uma controladoria cria dez funções LAMBDA com nomes curtos e envia o modelo a uma subsidiária. Lá, o Excel mais antigo mostra `#NOME?` em todas as células de resultado, e o único que entende as regras, o autor, está em férias. O fechamento do mês atrasa três dias.",
+        ]),
+      ],
+    },
+  ],
+};
+
+export const OFFICE_BOOK_06_EXERCISES: ContentExercise[] = [
+  {
+    nodeTitle: NODE,
+    type: 1,
+    level: "intermediate",
+    promptMd: "Uma fórmula `=ÚNICO(A2:A200)` está em M2, e alguém digitou um comentário em M5. O que o Excel mostra em M2?",
+    choices: [
+      "#DESPEJAR!, porque o resultado não tem onde se espalhar e nada é exibido",
+      "Os valores únicos, parando antes de M5",
+      "#CALC!, porque a matriz ficou vazia",
+      "Os valores únicos, sobrescrevendo o comentário de M5",
+    ],
+    answerKeyMd: "#DESPEJAR!, porque o resultado não tem onde se espalhar e nada é exibido",
+    points: 10,
+  },
+  {
+    nodeTitle: NODE,
+    type: 2,
+    level: "advanced",
+    promptMd: "Um relatório mensal tem uma lista de vendedores digitada à mão em D2:D20 e uma SOMASES para cada um em E2:E20. Quando entra um vendedor novo, é preciso lembrar de acrescentar a linha e copiar a fórmula, e já houve esquecimentos. Descreva como reconstruí-lo com matrizes dinâmicas sobre uma Tabela chamada Vendas (colunas Vendedor e Valor), escreva as fórmulas e explique o que acontece quando uma linha nova é digitada abaixo da Tabela.",
+    answerKeyMd: "Com a lista de vendas em uma Tabela (Vendas), D2: =ÚNICO(Vendas[Vendedor]) devolve os vendedores sem repetição; E2: =SOMASES(Vendas[Valor];Vendas[Vendedor];D2#) devolve a soma de cada um, como matriz alinhada com D2#. Para ordenar do maior para o menor: =CLASSIFICAR(EMPILHARH(D2#;E2#);2;-1). Ao digitar uma linha logo abaixo da Tabela, ela é absorvida; ÚNICO inclui o vendedor novo se ele ainda não existe, E2 ganha mais um item e a classificação se reorganiza, sem editar fórmulas. Cuidados: reservar área livre abaixo para o derramamento, garantir dados limpos (espaços e maiúsculas), e lembrar que só funciona em versões com matrizes dinâmicas.",
+    rubricMd: "Usa ÚNICO sobre a Tabela e SOMASES com o operador #; menciona a absorção da linha nova; cita área livre, dados limpos e compatibilidade.",
+    points: 20,
+  },
+  {
+    nodeTitle: NODE,
+    type: 3,
+    level: "advanced",
+    promptMd: "Reescreva com LET, sem repetir cálculos, a fórmula `=SOMA(FILTRO(C2:C100;A2:A100=G1))/CONT.NÚM(FILTRO(C2:C100;A2:A100=G1))`, que calcula a média dos valores da sala informada em G1, e depois mostre como tratar o caso em que a sala não tem nenhuma reserva, devolvendo \"sem reservas\" em vez de um erro.",
+    answerKeyMd: "```\n=LET(lista;FILTRO(C2:C100;A2:A100=G1;\"\");SE(CONT.NÚM(lista)=0;\"sem reservas\";SOMA(lista)/CONT.NÚM(lista)))\n```\n\nO FILTRO é calculado uma vez e nomeado lista; o terceiro argumento \"\" do FILTRO evita #CALC! quando não há linhas (a matriz resultante tem o texto vazio, que CONT.NÚM não conta); SE trata a ausência antes da divisão, evitando #DIV/0!. Alternativa: usar SEERRO apenas se o erro esperado for conhecido, mas o SE explícito é mais seguro porque não esconde outros erros.",
+    points: 20,
+  },
+];
+
+export const OFFICE_BOOK_06_CARDS: ContentCard[] = [
+  { nodeTitle: NODE, frontMd: "O que é o operador # (por exemplo M2#)?", backMd: "Refere-se ao intervalo derramado por uma fórmula de matriz dinâmica que começa em M2, qualquer que seja o tamanho atual." },
+  { nodeTitle: NODE, frontMd: "O que causa #DESPEJAR! e #CALC!?", backMd: "#DESPEJAR!: há conteúdo no caminho do derramamento (ou a fórmula está numa Tabela). #CALC!: o resultado é uma matriz vazia (trate com o argumento se_vazio de FILTRO)." },
+  { nodeTitle: NODE, frontMd: "Como montar um resumo por categoria com matrizes dinâmicas?", backMd: "ÚNICO da coluna, SOMASES/CONT.SES com a lista como critério (ÚNICO#), EMPILHARH para reunir e CLASSIFICAR para ordenar; sobre uma Tabela, acompanha as linhas novas." },
+  { nodeTitle: NODE, frontMd: "Para que serve LET?", backMd: "Dá nomes a valores/cálculos dentro da fórmula: evita repetir cálculos caros, melhora a leitura. Os nomes só valem na fórmula. O arquivo grava _xlfn.LET e parâmetros _xlpm." },
+  { nodeTitle: NODE, frontMd: "O que é uma LAMBDA nomeada e quais funções a recebem?", backMd: "Uma função própria guardada em um nome definido (Margem = LAMBDA(v;c;...)). MAP, REDUCE, SCAN, BYROW, BYCOL e MAKEARRAY a recebem (nomes em inglês). Exige versão recente do Excel." },
+];

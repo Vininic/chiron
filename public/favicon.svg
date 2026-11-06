@@ -1,9 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <!-- open book -->
-  <path d="M8 16 L32 8 L56 16 L56 52 L32 60 L8 52 Z" stroke="#A63446" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
-  <!-- spine -->
-  <line x1="32" y1="8" x2="32" y2="60" stroke="#A63446" stroke-width="3"/>
-  <!-- quill -->
-  <path d="M18 52 L46 14" stroke="#A63446" stroke-width="3" stroke-linecap="round"/>
-  <path d="M46 14 L50 10 M46 14 L50 18 M46 14 L42 18" stroke="#A63446" stroke-width="2.5" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Ink tile. The previous favicon was stroke-only with no background, so it
+       vanished against a light browser tab. A filled tile guarantees the mark
+       reads in light and dark chrome alike. -->
+  <rect width="64" height="64" rx="14" fill="#0B1017"/>
+  <g fill="none" stroke="#D64545" stroke-linecap="round" stroke-linejoin="round">
+    <!-- meridian ring -->
+    <circle cx="32" cy="32" r="18" stroke-width="3.5"/>
+    <!-- equator ring -->
+    <ellipse cx="32" cy="32" rx="18" ry="6" stroke-width="3" transform="rotate(-20 32 32)"/>
+    <!-- polar axis / arrow shaft -->
+    <path d="M23.6 55.1 L40.4 8.9" stroke-width="3.5"/>
+    <!-- arrowhead -->
+    <path d="M34.7 13.6 L40.4 8.9 L41.7 16.1" stroke-width="3"/>
+    <!-- fletching -->
+    <path d="M20.6 52.6 L25.6 49.7 L27.5 55.1" stroke-width="2.5"/>
+  </g>
 </svg>

@@ -2,77 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Chiron design system — sepia leather ink + red-ink crimson accent on warm
-   parchment. Sibling of Chronos (midnight + bronze), Kairos (twilight +
-   rose-gold), Pluto (vault green + gold), Hermes (graphite + cyan): same
-   paper, same cards, same type — but where the others measure time, move
-   work, or guard wealth, Chiron carries knowledge: deep sepia for the
-   inkwell, crimson for the teacher's corrections. */
+/* Chiron design system — "Iron Gall": iron-gall ink (the blue-black of real
+   manuscript ink) + rubric red on the suite's warm parchment. Sibling of
+   Chronos (midnight + bronze), Kairos (twilight + rose-gold), Pluto (vault
+   green + gold), Hermes (graphite + cyan): same paper, same cards, same
+   type — but where the others measure time, move work, or guard wealth,
+   Chiron carries knowledge.
+
+   Replaces the original sepia+crimson scheme (2026-07-29 review): both halves
+   were muddy warm browns fighting each other, so nothing read as ink and
+   nothing read as correction. Iron gall is a cool near-black — it reads as
+   *written* — and rubric red is the pigment scribes actually used to mark
+   headings and corrections, which is exactly this app's job.
+
+   Rubric vs destructive: rubric is hue 0, the suite's shared destructive
+   #B23A2E is hue 8 — 8 degrees apart, effectively the same hue. They are kept
+   apart by lightness (56% vivid vs 44% dessaturated brick) and by strictly
+   exclusive context: rubric never appears on a delete affordance, destructive
+   never appears on a heading, eyebrow, chart series or mastery state, and the
+   two never sit adjacent in one component. Destructive stays untouched because
+   it belongs to the whole suite, not to Chiron. */
 
 @layer base {
   :root {
     /* Surfaces — the shared suite parchment */
     --background: 39 33% 95%;          /* #F7F4EE parchment */
-    --foreground: 24 28% 18%;         /* sepia leather #3B2A20 */
+    --foreground: 213 31% 11%;         /* iron-gall ink #141C26 */
 
     --surface-raised: 38 40% 97%;
     --surface-veil: 39 22% 88%;
 
     --card: 0 0% 100%;
-    --card-foreground: 24 28% 18%;
+    --card-foreground: 213 31% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 24 28% 18%;
+    --popover-foreground: 213 31% 11%;
 
     /* Brand */
-    --primary: 24 28% 18%;            /* sepia leather #3B2A20 */
+    --primary: 213 31% 11%;            /* iron-gall ink #141C26 */
     --primary-foreground: 39 33% 95%;
-    --primary-deep: 24 34% 10%;        /* near-black sepia #1C130E */
-    --primary-glow: 24 24% 30%;
+    --primary-deep: 215 35% 7%;        /* near-black ink #0B1017 */
+    --primary-glow: 214 22% 26%;
 
-    --secondary: 346 52% 43%;          /* red-ink crimson #A63446 */
+    --secondary: 0 64% 56%;            /* rubric #D64545 */
     --secondary-foreground: 0 0% 100%;
-    --secondary-soft: 346 56% 60%;     /* soft crimson */
+    --secondary-soft: 3 72% 67%;       /* soft rubric #E8756F */
 
-    --muted: 39 22% 90%;
-    --muted-foreground: 24 14% 34%;
+    --muted: 39 20% 90%;
+    --muted-foreground: 214 14% 36%;
 
-    --accent: 346 56% 60%;
+    --accent: 3 72% 67%;
     --accent-foreground: 0 0% 100%;
 
-    --neutral-veil: 39 22% 82%;
+    --neutral-veil: 39 20% 82%;
 
-    --destructive: 8 62% 44%;
+    --destructive: 8 62% 44%;          /* suite-shared — do not retune */
     --destructive-foreground: 39 33% 97%;
 
-    --border: 39 18% 84%;
-    --input: 39 18% 84%;
-    --ring: 346 52% 43%;
+    --border: 39 16% 84%;
+    --input: 39 16% 84%;
+    --ring: 0 64% 56%;
 
     --radius: 0.625rem;
 
-    /* Sidebar — strongly sepia */
-    --sidebar-background: 24 34% 10%;
-    --sidebar-foreground: 30 16% 86%;
-    --sidebar-primary: 346 52% 43%;
+    /* Sidebar — deep iron-gall ink */
+    --sidebar-background: 215 35% 7%;
+    --sidebar-foreground: 210 14% 86%;
+    --sidebar-primary: 0 64% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 24 28% 18%;
+    --sidebar-accent: 213 28% 14%;
     --sidebar-accent-foreground: 39 33% 95%;
-    --sidebar-border: 24 26% 17%;
-    --sidebar-ring: 346 52% 43%;
+    --sidebar-border: 214 24% 15%;
+    --sidebar-ring: 0 64% 56%;
 
     /* Gradients */
-    --gradient-signal: linear-gradient(160deg, hsl(24 34% 10%) 0%, hsl(24 30% 14%) 60%, hsl(24 24% 20%) 100%);
-    --gradient-crimson: linear-gradient(135deg, hsl(346 56% 60%) 0%, hsl(346 52% 43%) 100%);
-    --gradient-parchment: radial-gradient(1200px 600px at 80% -10%, hsl(346 62% 50% / 0.12), transparent 60%),
-                          radial-gradient(900px 500px at -10% 110%, hsl(24 28% 18% / 0.08), transparent 60%),
+    --gradient-signal: linear-gradient(160deg, hsl(215 35% 7%) 0%, hsl(214 30% 11%) 60%, hsl(213 24% 17%) 100%);
+    --gradient-rubric: linear-gradient(135deg, hsl(3 72% 67%) 0%, hsl(0 64% 50%) 100%);
+    --gradient-parchment: radial-gradient(1200px 600px at 80% -10%, hsl(0 64% 56% / 0.10), transparent 60%),
+                          radial-gradient(900px 500px at -10% 110%, hsl(213 31% 11% / 0.08), transparent 60%),
                           linear-gradient(180deg, hsl(39 35% 96%), hsl(39 33% 93%));
     --gradient-veil: linear-gradient(180deg, hsl(39 33% 95% / 0), hsl(39 33% 95% / 0.9));
 
-    /* Shadows */
-    --shadow-soft: 0 1px 2px hsl(24 28% 18% / 0.04), 0 8px 24px -12px hsl(24 28% 18% / 0.12);
-    --shadow-elevated: 0 2px 4px hsl(24 28% 18% / 0.06), 0 24px 48px -20px hsl(24 28% 18% / 0.22);
-    --shadow-crimson: 0 10px 30px -12px hsl(346 52% 43% / 0.55);
+    /* Shadows — ink-tinted, per the family formula */
+    --shadow-soft: 0 1px 2px hsl(213 31% 11% / 0.05), 0 8px 24px -12px hsl(213 31% 11% / 0.14);
+    --shadow-elevated: 0 2px 4px hsl(213 31% 11% / 0.07), 0 24px 48px -20px hsl(213 31% 11% / 0.24);
+    --shadow-rubric: 0 10px 30px -12px hsl(0 64% 50% / 0.5);
+
+    /* Chart scale — six curated, brand-independent hues. The accent is one of
+       them, not all of them: a chart coloured entirely in rubric can't
+       distinguish series. Validated (2026-08-07, F4) with the dataviz skill's
+       validate_palette.js against this surface — light passes all 6 checks
+       (chroma floor, adjacent CVD ΔE, normal-vision ΔE, lightness band); the
+       one WARN is chart-5's sub-3:1 contrast, which is why any chart using it
+       needs a direct label, not color alone. The original slate/plum steps
+       (213 12% 49% / 320 21% 45%) read as near-gray to the validator — too
+       low chroma to work as a *categorical* hue — replaced with violet/rose. */
+    --chart-1: 0 64% 55%;              /* rubric      #D64545 */
+    --chart-2: 208 57% 42%;            /* iron blue   #2E6FA8 */
+    --chart-3: 162 64% 34%;            /* verdigris   #1F8F6D */
+    --chart-4: 272 34% 47%;            /* violet      #7A4FA0 */
+    --chart-5: 35 51% 50%;             /* ochre       #C08A3E */
+    --chart-6: 336 38% 52%;            /* rose        #B2557A */
 
     /* Motion */
     --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
@@ -80,65 +110,75 @@
 
   /* ------------------------------------------------------------------ */
   /*  Dark theme — "Scriptorium Atelier"                                  */
-  /*  Same palette logic as Chronos/Kairos/Pluto/Hermes, inverted: deep  */
-  /*  sepia-black surfaces with crimson accent leading in dark mode.     */
+  /*  Same palette logic as Chronos/Kairos/Pluto/Hermes, inverted: deep   */
+  /*  ink-black surfaces with the rubric leading in dark mode.            */
   /* ------------------------------------------------------------------ */
   .dark {
-    --background: 24 28% 6%;
-    --foreground: 30 18% 90%;
+    --background: 215 28% 6%;
+    --foreground: 210 16% 90%;
 
-    --surface-raised: 24 24% 9%;
-    --surface-veil:   24 20% 12%;
+    --surface-raised: 215 24% 9%;
+    --surface-veil:   215 20% 12%;
 
-    --card: 24 22% 8%;
-    --card-foreground: 30 18% 90%;
+    --card: 215 24% 8%;
+    --card-foreground: 210 16% 90%;
 
-    --popover: 24 22% 8%;
-    --popover-foreground: 30 18% 90%;
+    --popover: 215 24% 8%;
+    --popover-foreground: 210 16% 90%;
 
-    --primary: 346 52% 52%;            /* crimson becomes the lead in dark */
-    --primary-foreground: 24 30% 6%;
-    --primary-deep: 346 44% 38%;
-    --primary-glow: 346 56% 62%;
+    --primary: 0 62% 58%;              /* rubric becomes the lead in dark */
+    --primary-foreground: 215 30% 6%;
+    --primary-deep: 0 54% 42%;
+    --primary-glow: 3 70% 70%;
 
-    --secondary: 346 52% 52%;
-    --secondary-foreground: 24 30% 6%;
-    --secondary-soft: 346 56% 66%;
+    --secondary: 0 62% 58%;
+    --secondary-foreground: 215 30% 6%;
+    --secondary-soft: 3 70% 70%;
 
-    --muted: 24 16% 16%;
-    --muted-foreground: 30 14% 68%;
+    --muted: 215 16% 16%;
+    --muted-foreground: 213 14% 68%;
 
-    --accent: 346 52% 52%;
-    --accent-foreground: 24 30% 6%;
+    --accent: 0 62% 58%;
+    --accent-foreground: 215 30% 6%;
 
-    --neutral-veil: 24 14% 20%;
+    --neutral-veil: 215 14% 20%;
 
-    --destructive: 8 70% 55%;
+    --destructive: 8 70% 55%;          /* suite-shared — do not retune */
     --destructive-foreground: 39 30% 96%;
 
-    --border: 24 18% 15%;
-    --input: 24 18% 15%;
-    --ring: 346 52% 52%;
+    --border: 215 18% 15%;
+    --input: 215 18% 15%;
+    --ring: 0 62% 58%;
 
-    --sidebar-background: 24 34% 5%;
-    --sidebar-foreground: 30 20% 84%;
-    --sidebar-primary: 346 52% 52%;
-    --sidebar-primary-foreground: 24 30% 6%;
-    --sidebar-accent: 24 22% 10%;
-    --sidebar-accent-foreground: 30 30% 95%;
-    --sidebar-border: 24 20% 14%;
-    --sidebar-ring: 346 52% 52%;
+    --sidebar-background: 215 32% 5%;
+    --sidebar-foreground: 210 18% 84%;
+    --sidebar-primary: 0 62% 58%;
+    --sidebar-primary-foreground: 215 30% 6%;
+    --sidebar-accent: 215 24% 10%;
+    --sidebar-accent-foreground: 210 28% 95%;
+    --sidebar-border: 215 20% 14%;
+    --sidebar-ring: 0 62% 58%;
 
-    --gradient-signal: linear-gradient(160deg, hsl(24 34% 5%) 0%, hsl(24 28% 10%) 60%, hsl(24 22% 16%) 100%);
-    --gradient-crimson: linear-gradient(135deg, hsl(346 56% 66%) 0%, hsl(346 52% 46%) 100%);
-    --gradient-parchment: radial-gradient(1200px 600px at 80% -10%, hsl(346 52% 52% / 0.10), transparent 60%),
-                          radial-gradient(900px 500px at -10% 110%, hsl(24 28% 30% / 0.18), transparent 60%),
-                          linear-gradient(180deg, hsl(24 28% 6%), hsl(24 22% 7%));
-    --gradient-veil: linear-gradient(180deg, hsl(24 28% 6% / 0), hsl(24 28% 6% / 0.9));
+    --gradient-signal: linear-gradient(160deg, hsl(215 32% 5%) 0%, hsl(215 28% 10%) 60%, hsl(214 22% 16%) 100%);
+    --gradient-rubric: linear-gradient(135deg, hsl(3 70% 70%) 0%, hsl(0 62% 50%) 100%);
+    --gradient-parchment: radial-gradient(1200px 600px at 80% -10%, hsl(0 62% 58% / 0.10), transparent 60%),
+                          radial-gradient(900px 500px at -10% 110%, hsl(213 28% 30% / 0.18), transparent 60%),
+                          linear-gradient(180deg, hsl(215 28% 6%), hsl(215 22% 7%));
+    --gradient-veil: linear-gradient(180deg, hsl(215 28% 6% / 0), hsl(215 28% 6% / 0.9));
 
     --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.4), 0 8px 24px -12px hsl(0 0% 0% / 0.55);
     --shadow-elevated: 0 2px 4px hsl(0 0% 0% / 0.45), 0 24px 48px -20px hsl(0 0% 0% / 0.7);
-    --shadow-crimson: 0 10px 30px -12px hsl(346 52% 46% / 0.45);
+    --shadow-rubric: 0 10px 30px -12px hsl(0 62% 50% / 0.45);
+
+    /* Chart scale — lifted for legibility on ink surfaces. Independently
+       validated against the dark chart surface (not a flip of the light
+       steps — same hue order, its own lightness/chroma). */
+    --chart-1: 0 64% 64%;              /* rubric      #de6868 */
+    --chart-2: 215 60% 58%;            /* iron blue   #5489d4 */
+    --chart-3: 155 62% 40%;            /* verdigris   #27a571 */
+    --chart-4: 272 40% 62%;            /* violet      #a177c5 */
+    --chart-5: 35 68% 44%;             /* ochre       #bc7d24 */
+    --chart-6: 336 48% 56%;            /* rose        #c55984 */
   }
 }
 
@@ -160,6 +200,16 @@
       transition-duration: 0.01ms !important;
     }
   }
+
+  /* The in-app override, for when the OS setting says one thing and the user
+     wants the other here. Same declarations as the media query above. */
+  [data-reduce-motion="true"] *,
+  [data-reduce-motion="true"] *::before,
+  [data-reduce-motion="true"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @layer components {
@@ -178,14 +228,38 @@
   }
   .hairline { border-color: hsl(var(--border)); }
   .num { font-variant-numeric: tabular-nums; }
+
+  /* Prism.js tokens — hand-picked against the fixed dark `--primary-deep`
+     code background (F6 reader), not a stock Prism theme stylesheet. The
+     background never changes with light/dark mode (a code block reads as
+     "ink" in both), so these are plain fixed colors, not --chart-N vars —
+     unlike F4/F5's chart marks, there's no second surface to validate against. */
+  .prism-code .token.comment,
+  .prism-code .token.prolog,
+  .prism-code .token.doctype { color: #8a94a6; font-style: italic; }
+  .prism-code .token.string,
+  .prism-code .token.char,
+  .prism-code .token.attr-value { color: #8fcf9f; }
+  .prism-code .token.keyword,
+  .prism-code .token.operator,
+  .prism-code .token.important { color: #e08a8a; }
+  .prism-code .token.function,
+  .prism-code .token.class-name { color: #7fb8e0; }
+  .prism-code .token.number,
+  .prism-code .token.boolean,
+  .prism-code .token.constant { color: #d9b36c; }
+  .prism-code .token.builtin,
+  .prism-code .token.tag,
+  .prism-code .token.decorator { color: #c99ee0; }
+  .prism-code .token.punctuation { color: #b8bec9; }
 }
 
 @layer utilities {
   .text-balance { text-wrap: balance; }
-  .bg-accent { background: var(--gradient-crimson); }
+  .bg-accent { background: var(--gradient-rubric); }
   .bg-ink { background: var(--gradient-signal); }
   .shadow-soft { box-shadow: var(--shadow-soft); }
   .shadow-elevated { box-shadow: var(--shadow-elevated); }
-  .shadow-crimson { box-shadow: var(--shadow-crimson); }
-  .ring-crimson { box-shadow: 0 0 0 1px hsl(var(--secondary) / 0.4); }
+  .shadow-rubric { box-shadow: var(--shadow-rubric); }
+  .ring-rubric { box-shadow: 0 0 0 1px hsl(var(--secondary) / 0.4); }
 }

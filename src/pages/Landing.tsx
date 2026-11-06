@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import Logo, { ChironMark } from "@/components/ChironLogo";
-import Tome from "@/components/three/Tome";
+import Anchor from "@/components/three/Anchor";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ const SUITE_URLS: Record<string, { href: string; color: string }> = {
   Kairos: { href: "https://kairos-suite.vercel.app", color: "#C98FA6" },
   Pluto: { href: "https://pluto-suite.vercel.app", color: "#C49A3A" },
   Hermes: { href: "https://hermes-suite.vercel.app", color: "#3EB8CC" },
-  Chiron: { href: "/dashboard", color: "#A63446" },
+  Chiron: { href: "/dashboard", color: "#D64545" },
   Olympus: { href: "https://olympus-virid.vercel.app", color: "#C9B99A" },
 };
 
@@ -79,7 +79,7 @@ export default function Landing() {
         </div>
         <div className="relative h-[420px] md:h-[520px] lg:col-span-5">
           <div className="bg-ink absolute inset-0 overflow-hidden rounded-[28px] shadow-elevated">
-            <Tome />
+            <Anchor />
           </div>
         </div>
       </section>

@@ -1,0 +1,13 @@
+import { FIGMA_PROSE_01 } from "./figmaProse01";
+import { FIGMA_PROSE_02 } from "./figmaProse02";
+import { FIGMA_PROSE_03 } from "./figmaProse03";
+import { FIGMA_PROSE_04 } from "./figmaProse04";
+import { FIGMA_PROSE_05 } from "./figmaProse05";
+import { FIGMA_PROSE_06 } from "./figmaProse06";
+import { FIGMA_PROSE_07 } from "./figmaProse07";
+import { FIGMA_PROSE_08 } from "./figmaProse08";
+import { FIGMA_PROSE_09 } from "./figmaProse09";
+import { FIGMA_PROSE_10 } from "./figmaProse10";
+import { FIGMA_PROSE_11 } from "./figmaProse11";
+import { FIGMA_PROSE_12 } from "./figmaProse12";
+export const FIGMA_AUTHORED_PROSE: Record<string,string> = {...FIGMA_PROSE_01,...FIGMA_PROSE_02,...FIGMA_PROSE_03,...FIGMA_PROSE_04,...FIGMA_PROSE_05,...FIGMA_PROSE_06,...FIGMA_PROSE_07,...FIGMA_PROSE_08,...FIGMA_PROSE_09,...FIGMA_PROSE_10,...FIGMA_PROSE_11,...FIGMA_PROSE_12};

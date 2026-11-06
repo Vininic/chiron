@@ -1,47 +1,85 @@
 import { useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
-  Activity, BookOpen, CircleHelp, Cloud, Compass, GraduationCap,
-  LayoutDashboard, Menu, MonitorSmartphone, PanelLeftClose, Repeat,
-  Settings2, Sparkles, Target, TrendingUp,
+  BookOpen, CircleHelp, Cloud, Compass, Download,
+  FlaskConical, LayoutDashboard, LogOut, Menu, MonitorSmartphone, PanelLeftClose, Repeat,
+  Settings2, Sparkles, Target, User,
 } from "lucide-react";
 import Logo, { ChironMark } from "@/components/ChironLogo";
 import ProfileDialog from "@/components/ProfileDialog";
 import Topbar from "@/components/Topbar";
+import { SettingsDialog } from "@/components/settings/SettingsDialog";
+import { AboutDialog } from "@/components/about/AboutDialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { toast } from "@/components/ui/sonner";
 import { useAuth } from "@/lib/auth";
+import { useChiron } from "@/lib/study/store";
+import { downloadBackupJSON } from "@/lib/study/export";
 import { useT } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
-function UserBlock({ collapsed, onOpen }: { collapsed: boolean; onOpen: () => void }) {
-  const { session } = useAuth();
+function UserBlock({ collapsed, onOpenProfile }: { collapsed: boolean; onOpenProfile: () => void }) {
+  const { session, signOut } = useAuth();
+  const { exportState } = useChiron();
+  const navigate = useNavigate();
   const t = useT();
+  const nav = t.chiron.nav;
   if (!session) return null;
   const cloud = !!session.email;
   const initial = session.name.trim().charAt(0).toUpperCase() || "C";
 
+  function exportData() {
+    downloadBackupJSON(exportState());
+    toast(t.chiron.profile.exportedJson);
+  }
+
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className={cn(
-        "flex w-full items-center gap-2.5 rounded-lg border border-sidebar-border bg-sidebar-accent/50 p-2.5 text-left transition-colors hover:bg-sidebar-accent",
-        collapsed && "justify-center border-0 bg-transparent p-0 hover:bg-transparent",
-      )}
-    >
-      <div className="font-display grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan font-semibold text-primary-deep">
-        {initial}
-      </div>
-      {!collapsed && (
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm text-sidebar-foreground">{session.name}</div>
-          <div className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-sidebar-foreground/55">
-            {cloud ? <Cloud className="h-2.5 w-2.5" /> : <MonitorSmartphone className="h-2.5 w-2.5" />}
-            {cloud ? t.common.suiteAccount : t.common.thisBrowser}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "flex w-full items-center gap-2.5 rounded-lg border border-sidebar-border bg-sidebar-accent/50 p-2.5 text-left transition-colors hover:bg-sidebar-accent",
+            collapsed && "justify-center border-0 bg-transparent p-0 hover:bg-transparent",
+          )}
+        >
+          <div className="font-display grid h-8 w-8 shrink-0 place-items-center rounded-full bg-secondary font-semibold text-secondary-foreground">
+            {initial}
           </div>
-        </div>
-      )}
-    </button>
+          {!collapsed && (
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm text-sidebar-foreground">{session.name}</div>
+              <div className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-sidebar-foreground/55">
+                {cloud ? <Cloud className="h-2.5 w-2.5" /> : <MonitorSmartphone className="h-2.5 w-2.5" />}
+                {cloud ? t.common.suiteAccount : t.common.thisBrowser}
+              </div>
+            </div>
+          )}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" side="top" className="w-56">
+        <DropdownMenuItem onClick={onOpenProfile}>
+          <User className="mr-2 h-4 w-4" /> {nav.profile}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/settings")}>
+          <Settings2 className="mr-2 h-4 w-4" /> {nav.settings}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={exportData}>
+          <Download className="mr-2 h-4 w-4" /> {nav.exportData}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => { void signOut(); navigate("/login"); }}
+          className="text-destructive focus:text-destructive"
+        >
+          <LogOut className="mr-2 h-4 w-4" /> {t.common.signOut}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -52,6 +90,8 @@ export default function AppLayout() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const initial = session?.name.trim().charAt(0).toUpperCase() || "C";
 
@@ -80,12 +120,10 @@ export default function AppLayout() {
     { to: "/apostila", label: nav.apostila, icon: BookOpen },
     { to: "/practice", label: nav.practice, icon: Target },
     { to: "/review", label: nav.review, icon: Repeat },
-    { to: "/progress", label: nav.progress, icon: TrendingUp },
+    { to: "/labs", label: "Laboratórios", icon: FlaskConical },
   ];
-  const system = [
-    { to: "/settings", label: nav.settings, icon: Settings2 },
-    { to: "/about", label: nav.about, icon: CircleHelp },
-  ];
+  // Settings and About are both dialogs now (suite shell §2.3, §2.4),
+  // so the System group holds no routes at all.
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -123,20 +161,35 @@ export default function AppLayout() {
           <div className={cn("mb-2 mt-7 px-3 text-[10px] uppercase tracking-[0.22em] text-sidebar-foreground/50", collapsed && "hidden")}>
             {nav.system}
           </div>
-          {system.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to} className={navClass} title={collapsed ? label : undefined}>
-              <Icon className="h-4 w-4 shrink-0" />
-              {!collapsed && <span>{label}</span>}
-            </NavLink>
-          ))}
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            title={collapsed ? nav.settings : undefined}
+            className={cn(navClass({ isActive: false }), "w-full text-left")}
+          >
+            <Settings2 className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>{nav.settings}</span>}
+          </button>
+          <button
+            type="button"
+            onClick={() => setAboutOpen(true)}
+            title={collapsed ? nav.about : undefined}
+            className={cn(navClass({ isActive: false }), "w-full text-left")}
+          >
+            <CircleHelp className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>{nav.about}</span>}
+          </button>
         </nav>
 
         <div className="px-3 pb-4 pt-2">
-          <UserBlock collapsed={collapsed} onOpen={() => setProfileOpen(true)} />
+          <UserBlock collapsed={collapsed} onOpenProfile={() => setProfileOpen(true)} />
         </div>
       </aside>
 
       <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
+
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <header className="flex items-center justify-between border-b border-sidebar-border bg-sidebar px-4 py-3 md:hidden">
@@ -162,7 +215,7 @@ export default function AppLayout() {
               type="button"
               aria-label={nav.profile}
               onClick={() => setProfileOpen(true)}
-              className="font-display grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cyan text-xs font-semibold text-primary-deep"
+              className="font-display grid h-8 w-8 shrink-0 place-items-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground"
             >
               {initial}
             </button>
@@ -191,12 +244,22 @@ export default function AppLayout() {
               <div className="mb-2 mt-7 px-3 text-[10px] uppercase tracking-[0.22em] text-sidebar-foreground/50">
                 {nav.system}
               </div>
-              {system.map(({ to, label, icon: Icon }) => (
-                <NavLink key={to} to={to} onClick={() => setMobileNavOpen(false)} className={mobileNavClass}>
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span>{label}</span>
-                </NavLink>
-              ))}
+              <button
+                type="button"
+                onClick={() => { setMobileNavOpen(false); setSettingsOpen(true); }}
+                className={cn(mobileNavClass({ isActive: false }), "w-full text-left")}
+              >
+                <Settings2 className="h-4 w-4 shrink-0" />
+                <span>{nav.settings}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMobileNavOpen(false); setAboutOpen(true); }}
+                className={cn(mobileNavClass({ isActive: false }), "w-full text-left")}
+              >
+                <CircleHelp className="h-4 w-4 shrink-0" />
+                <span>{nav.about}</span>
+              </button>
             </nav>
           </SheetContent>
         </Sheet>

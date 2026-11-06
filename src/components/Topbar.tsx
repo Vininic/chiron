@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom";
-import { Activity, BookOpen, CircleHelp, Compass, GraduationCap, LayoutDashboard, Repeat, Settings2, Sparkles, Target } from "lucide-react";
+import { BookOpen, CircleHelp, Compass, LayoutDashboard, Repeat, Settings2, Sparkles, Target } from "lucide-react";
 import { ChironMark } from "@/components/ChironLogo";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -13,10 +13,9 @@ export default function Topbar() {
   const crumb =
     location.pathname === "/dashboard" ? { icon: LayoutDashboard, label: nav.dashboard } :
     location.pathname === "/maps" ? { icon: Compass, label: nav.maps } :
-    location.pathname === "/apostila" ? { icon: BookOpen, label: nav.apostila } :
+    location.pathname.startsWith("/apostila") ? { icon: BookOpen, label: nav.apostila } :
     location.pathname === "/practice" ? { icon: Target, label: nav.practice } :
     location.pathname === "/review" ? { icon: Repeat, label: nav.review } :
-    location.pathname === "/progress" ? { icon: Activity, label: nav.progress } :
     location.pathname === "/aetheris" ? { icon: Sparkles, label: nav.aetheris } :
     location.pathname === "/settings" ? { icon: Settings2, label: nav.settings } :
     location.pathname === "/about" ? { icon: CircleHelp, label: nav.about } :

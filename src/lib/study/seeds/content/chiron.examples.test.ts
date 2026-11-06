@@ -1,0 +1,48 @@
+import {expect,it,afterAll} from 'vitest';
+import {readFileSync,writeFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import * as migrate from '@/lib/study/migrate';
+import * as service from '@/lib/study/service';
+import * as blocks from '@/lib/content/blocks';
+import * as srs from '@/lib/study/srs';
+import * as review from '@/lib/study/review';
+import * as practice from '@/lib/study/practice';
+import * as scoring from '@/lib/study/scoring';
+import * as dashboard from '@/lib/study/dashboard';
+import * as grid from '@/lib/labs/grid';
+import * as engine from '@/lib/labs/engine';
+import * as actions from '@/lib/ai/actions';
+import {deepStrictEqual} from 'node:assert';
+import {CHIRON_CONTENT} from './chiron';
+import {CHIRON_EXAMPLES} from './chironExamples';
+const plan=JSON.parse(readFileSync('scripts/chiron-authoring-plan.json','utf8'));
+const cases=JSON.parse(readFileSync('scripts/chiron-example-cases.json','utf8'));
+const modules={migrate,service,blocks,srs,review,practice,scoring,dashboard,grid,engine,actions};
+const records=plan.curriculum.flatMap((c:any)=>c.sections);
+const sections=CHIRON_CONTENT.chapters.flatMap(c=>c.sections);
+const evidence:unknown[]=[];
+const hash=(s:string)=>createHash('sha256').update(s).digest('hex');
+for(let i=0;i<48;i++)for(let j=0;j<2;j++){
+ it('Chiron native '+records[i].symbol+' / '+(j+1),()=>{
+  const example=CHIRON_EXAMPLES[sections[i].title][j];
+  expect(example.expression).toBe(cases[i][j*2]);
+  expect(example.expected).toEqual(cases[i][j*2+1]);
+  expect(hash(example.code)).toBe(example.digest);
+  const codeBlocks=sections[i].blocks.filter(b=>b.kind==='code');
+  expect(codeBlocks[j].code).toBe(example.code);
+  expect(hash(readFileSync(records[i].file,'utf8'))).toBe(records[i].sourceDigest);
+  const line=readFileSync(records[i].file,'utf8').split(/\r?\n/)[records[i].line-1];
+  expect(line).toContain(records[i].symbol);
+  const cite=sections[i].blocks.find(b=>b.kind==='cite');
+  expect(cite).toMatchObject({file:records[i].file,symbol:records[i].symbol,lines:[records[i].line,records[i].line]});
+  const imports=example.code.split('\n').filter(line=>line.startsWith('import '));
+  const expectedImports=example.dependencies.map(name=>`import * as ${name} from ${JSON.stringify('@/lib/'+(name==='blocks'?'content/blocks':['grid','engine'].includes(name)?'labs/'+name:name==='actions'?'ai/actions':'study/'+name))};`);
+  expect(imports).toEqual([...expectedImports,'import { deepStrictEqual } from "node:assert";']);
+  const body=example.code.split('\n').filter(line=>!line.startsWith('import ')).join('\n');
+  const run=new Function(...Object.keys(modules),'deepStrictEqual',body+'\nreturn actual;');
+  const actual=run(...Object.values(modules),deepStrictEqual);
+  expect(actual).toEqual(example.expected);
+  evidence.push({symbol:records[i].symbol,case:j+1,expected:example.expected,actual,codeDigest:example.digest,sourceDigest:records[i].sourceDigest,status:'passed'});
+ });
+}
+afterAll(()=>{if(evidence.length===96)writeFileSync('scripts/chiron-example-evidence.json',JSON.stringify({generatedAt:new Date().toISOString(),environment:{node:process.version,platform:process.platform},executions:evidence,limitations:'Exact published JS bodies, static imports checked then bound to real repository modules by Vitest. Synthetic documents. No React rendering, storage, remote provider or concurrent backend attested.'},null,2)+'\n');});

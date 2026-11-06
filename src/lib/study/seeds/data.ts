@@ -1436,40 +1436,6 @@ const REPO_SEEDS: SeedSource[] = [
 
 const SKILL_SEEDS: SeedSource[] = [
   {
-    name: "Next.js", kind: "stack", language: "TypeScript",
-    nodes: [
-      { title: "App Router vs Pages Router", kind: "concept" },
-      { title: "Server vs Client Components", kind: "concept" },
-      { title: "API Routes e Route Handlers", kind: "function" },
-    ],
-    sections: [
-      {
-        nodeTitle: "Server vs Client Components", title: "Zero JavaScript no bundle quando possivel", order: 1,
-        bodyMd: body([
-          "# Server Components",
-          "",
-          "Next.js 13+ introduziu React Server Components (RSC). Todo componente e Server por padrao. Adicione 'use client' apenas quando precisar de interatividade (onClick, hooks, efeitos).",
-          "",
-          "Server Components:",
-          "- Rodam no servidor, zero JS no bundle do cliente",
-          "- Podem ser async (buscar dados direto do banco)",
-          "- Reduzem drasticamente o bundle size",
-          "",
-          "Client Components:",
-          "- Hidratados no browser",
-          "- Tem acesso a hooks, estado, eventos",
-          "- Devem ser a excecao, nao a regra",
-        ]),
-      },
-    ],
-    exercises: [
-      { type: 2, level: "intermediate", nodeTitle: "Server vs Client Components", promptMd: "Por que o padrao Server Component reduz o bundle size mesmo em paginas interativas?", answerKeyMd: "Porque apenas componentes marcados com 'use client' sao incluidos no bundle do cliente. Uma pagina com 10 componentes pode ter apenas 2 client components. Os outros 8 renderizam no servidor e nunca sao baixados pelo navegador.", points: 15 },
-    ],
-    cards: [
-      { nodeTitle: "Server vs Client Components", frontMd: "Quando usar 'use client' em Next.js 13+?", backMd: "Quando o componente usa hooks (useState, useEffect), event handlers (onClick), APIs do browser (localStorage). Todo componente sem esses requisitos deve ser Server Component (padrao)." },
-    ],
-  },
-  {
     name: "Vue.js", kind: "stack", language: "JavaScript",
     nodes: [
       { title: "Sistema de Reatividade (ref/reactive)", kind: "concept" },
@@ -1649,38 +1615,6 @@ const SKILL_SEEDS: SeedSource[] = [
     ],
     cards: [
       { nodeTitle: "Rebase vs Merge", frontMd: "Por que nunca fazer rebase em branches compartilhadas?", backMd: "Rebase reescreve SHA dos commits. Se outros devs fizeram fetch da sua branch, o git deles tera commits orfaos e conflitos. Rebase so em branches que ninguem mais usa." },
-    ],
-  },
-  {
-    name: "Node.js", kind: "stack", language: "JavaScript",
-    nodes: [
-      { title: "Event Loop", kind: "concept" },
-      { title: "Streams e Buffers", kind: "function" },
-      { title: "Express e Middlewares", kind: "module" },
-    ],
-    sections: [
-      {
-        nodeTitle: "Event Loop", title: "Single-threaded, mas rapido", order: 1,
-        bodyMd: body([
-          "# Event Loop",
-          "",
-          "Node.js e single-threaded para JavaScript, mas delega I/O para o SO via libuv. O event loop coordena em fases:",
-          "",
-          "1. Timers (setTimeout/setInterval)",
-          "2. I/O (pending callbacks)",
-          "3. Poll (novos eventos de I/O)",
-          "4. Check (setImmediate)",
-          "5. Close",
-          "",
-          "Microtasks (Promise.then) executam entre fases. Isso significa que Promises resolvidas sao processadas antes da proxima macrotask.",
-        ]),
-      },
-    ],
-    exercises: [
-      { type: 5, level: "intermediate", nodeTitle: "Event Loop", promptMd: "Qual a ordem: console.log('A'); setTimeout(() => console.log('B'), 0); Promise.resolve().then(() => console.log('C')); console.log('D');", answerKeyMd: "A, D, C, B. Sincrono primeiro (A, D), microtask (C) antes da proxima fase, setTimeout (B) na fase de timers. Microtasks executam entre fases do event loop.", points: 15 },
-    ],
-    cards: [
-      { nodeTitle: "Event Loop", frontMd: "O que sao microtasks no event loop do Node.js?", backMd: "Callbacks de Promise (.then) e queueMicrotask(). Executam entre cada fase do event loop, antes de iniciar a proxima fase. Garantem que Promises resolvidas sejam processadas imediatamente apos sincrono." },
     ],
   },
   {

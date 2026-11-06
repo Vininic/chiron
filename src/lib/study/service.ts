@@ -1,9 +1,9 @@
 // Pure domain service for Chiron — all functions are immutable, returning new documents.
 
 import type {
-  ChironIndex, ChironLib, StudySource, MapNode, ApostilaSection,
+  ChironIndex, ChironLib, StudySource, MapNode, Chapter, ApostilaSection,
   Exercise, Card, Attempt, StudySession, SessionBlock,
-  Mastery, NodeKind, ExerciseType, ExerciseLevel, SessionBlockKind,
+  Mastery, NodeKind, ExerciseType, ExerciseLevel, SessionBlockKind, LabLayerProgress,
 } from "./types";
 import { makeId, today } from "./types";
 import { addPoints } from "./scoring";
@@ -63,6 +63,27 @@ export function getNodesForSource(index: ChironIndex, sourceId: string): MapNode
   return index.nodes.filter((n) => n.sourceId === sourceId);
 }
 
+// ── Chapters ────────────────────────────────────────────────────────
+// Added 2026-07-29 alongside the F2 content-authoring format
+// (seeds/content/types.ts) — Chapter existed as a type since F1's block
+// model landed, but nothing could create one except migrate.ts and
+// seeds/index.ts building the object literal directly. Real content
+// authoring needs the same add/update primitives every other domain type has.
+
+export function addChapter(lib: ChironLib, chapter: Omit<Chapter, "id">): { lib: ChironLib; id: string } {
+  const id = makeId();
+  const newChapter: Chapter = { ...chapter, id };
+  return { lib: { ...lib, chapters: [...lib.chapters, newChapter], version: lib.version + 1 }, id };
+}
+
+export function updateChapter(lib: ChironLib, id: string, updates: Partial<Chapter>): ChironLib {
+  return { ...lib, chapters: lib.chapters.map((c) => (c.id === id ? { ...c, ...updates } : c)), version: lib.version + 1 };
+}
+
+export function removeChapter(lib: ChironLib, id: string): ChironLib {
+  return { ...lib, chapters: lib.chapters.filter((c) => c.id !== id), version: lib.version + 1 };
+}
+
 // ── Apostila ────────────────────────────────────────────────────────
 
 export function addSection(lib: ChironLib, section: Omit<ApostilaSection, "id">): { lib: ChironLib; id: string } {
@@ -113,6 +134,7 @@ export function reviewCard(index: ChironIndex, cardId: string, grade: SM2Grade):
   return {
     ...index,
     cards: index.cards.map((c) => (c.id === cardId ? { ...c, ...result } : c)),
+    reviewLog: [...index.reviewLog, { date: today(), grade, cardId }],
     version: index.version + 1,
   };
 }
@@ -130,6 +152,11 @@ export function recordAttempt(index: ChironIndex, attempt: Omit<Attempt, "id" | 
   const updatedIndex = { ...index, attempts: [...index.attempts, newAttempt], version: index.version + 1 };
   const updatedScore = addPoints(updatedIndex.score, attempt.scoreAwarded);
   return { index: { ...updatedIndex, score: updatedScore }, id };
+}
+
+export function recordLabLayer(index: ChironIndex, progress: LabLayerProgress): ChironIndex {
+  const rest = index.labProgress.filter((item) => !(item.labId === progress.labId && item.layerId === progress.layerId));
+  return { ...index, labProgress: [...rest, progress], version: index.version + 1 };
 }
 
 // ── Sessions ────────────────────────────────────────────────────────

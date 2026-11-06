@@ -1,0 +1,13 @@
+import { N8N_PROSE_01 } from "./n8nProse01";
+import { N8N_PROSE_02 } from "./n8nProse02";
+import { N8N_PROSE_03 } from "./n8nProse03";
+import { N8N_PROSE_04 } from "./n8nProse04";
+import { N8N_PROSE_05 } from "./n8nProse05";
+import { N8N_PROSE_06 } from "./n8nProse06";
+import { N8N_PROSE_07 } from "./n8nProse07";
+import { N8N_PROSE_08 } from "./n8nProse08";
+import { N8N_PROSE_09 } from "./n8nProse09";
+import { N8N_PROSE_10 } from "./n8nProse10";
+import { N8N_PROSE_11 } from "./n8nProse11";
+import { N8N_PROSE_12 } from "./n8nProse12";
+export const N8N_AUTHORED_PROSE: Record<string,string> = {...N8N_PROSE_01,...N8N_PROSE_02,...N8N_PROSE_03,...N8N_PROSE_04,...N8N_PROSE_05,...N8N_PROSE_06,...N8N_PROSE_07,...N8N_PROSE_08,...N8N_PROSE_09,...N8N_PROSE_10,...N8N_PROSE_11,...N8N_PROSE_12};

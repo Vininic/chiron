@@ -17,3 +17,9 @@ export {
   approveAllDrafts, getPendingDrafts, getApprovedDrafts,
 } from "./drafts";
 export type { Draft, DraftDocument, DraftKind, DraftNode, DraftSection, DraftExercise, DraftCard } from "./drafts";
+
+export { runIngestion } from "./run";
+export type { IngestionProgress, IngestionResult } from "./run";
+
+export { materializeDrafts } from "./materialize";
+export type { MaterializeResult, MaterializeCounts } from "./materialize";

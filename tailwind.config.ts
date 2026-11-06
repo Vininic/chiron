@@ -1,9 +1,10 @@
 import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
+import tailwindcssContainerQueries from "@tailwindcss/container-queries";
 
 export default {
   darkMode: ["class"],
-  content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  content: ["./index.html", "./src/**/*.{ts,tsx}", "!./src/lib/study/seeds/content/**/*.{ts,tsx}"],
   prefix: "",
   theme: {
     container: { center: true, padding: "1.5rem", screens: { "2xl": "1320px" } },
@@ -71,5 +72,5 @@ export default {
       },
     },
   },
-  plugins: [tailwindcssAnimate],
+  plugins: [tailwindcssAnimate, tailwindcssContainerQueries],
 } satisfies Config;

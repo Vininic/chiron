@@ -1,6 +1,6 @@
 /** Aetheris settings — stored ONLY in this browser. Ported from Pluto's
- *  lib/ai/settings.ts (same suite, same ai-proxy backend) — no `autonomy` field
- *  here, since Chiron's Aetheris only explains/tutors, it never mutates data. */
+ *  lib/ai/settings.ts (same suite, same ai-proxy backend). Proposed study
+ *  actions are review-first by default; autonomy is an explicit opt-in. */
 
 export type AiProvider = "gemini-hosted" | "openrouter-hosted" | "gemini" | "openai" | "anthropic" | "openrouter" | "ollama";
 
@@ -10,6 +10,7 @@ export interface AiSettings {
   model: string;
   /** Ollama only. */
   baseUrl: string;
+  autonomy: "review" | "auto";
 }
 
 const KEY = "chiron.ai-settings.v1";
@@ -37,7 +38,7 @@ export const DEFAULT_MODELS: Record<AiProvider, string> = {
 /** Zero-setup default: routes through the suite's shared ai-proxy — no key,
  *  no signup, works immediately. */
 export function defaultAiSettings(): AiSettings {
-  return { provider: "gemini-hosted", apiKey: "", model: "", baseUrl: "" };
+  return { provider: "gemini-hosted", apiKey: "", model: "", baseUrl: "", autonomy: "review" };
 }
 
 export function loadAiSettings(): AiSettings {

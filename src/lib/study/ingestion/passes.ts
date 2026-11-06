@@ -33,6 +33,13 @@ export interface GeneratedExercise {
   choices?: string[];
   answerKeyMd: string;
   points: number;
+  /** Which map node (by title, same as GeneratedSection/GeneratedCard) this
+   *  exercise belongs to. Missing until 2026-07-29 — the prompt never asked
+   *  for it and the type had no field for it, so an ingested exercise could
+   *  never be attributed to a node at all; lib/content/contract.ts counts
+   *  exercises per chapter via their node, so an unattributed exercise was
+   *  mechanically invisible to the completeness contract. */
+  nodeTitle: string;
 }
 
 export interface GeneratedCard {
@@ -70,6 +77,7 @@ Each object has:
 - "choices": optional array of answer choices for multiple choice
 - "answerKeyMd": correct answer in markdown
 - "points": number (5-20)
+- "nodeTitle": which concept from the map this exercise tests (must match a concept title exactly)
 
 Output ONLY a valid JSON array. No markdown, no backticks.`;
 
@@ -183,15 +191,28 @@ Generate a concept map from this codebase. Focus on architecture, key modules, d
   return parseJSON<GeneratedNode>(result.text);
 }
 
+// Rendered into every downstream pass's prompt so "nodeTitle" fields are
+// grounded in the map that was actually generated, not guessed blind. Fixed
+// 2026-07-29 alongside adding `nodeTitle` to GeneratedExercise: sections,
+// exercises and cards all reference a node by title, but only `generateMap`
+// itself ever saw the node list — the other three passes had no way to know
+// what a valid title even was, so every nodeTitle they emitted was a guess
+// that materialize.ts's title→id lookup would then silently drop on a miss.
+function nodeTitleList(nodes: GeneratedNode[]): string {
+  return nodes.length > 0
+    ? `Valid concept titles (use these exactly for "nodeTitle" — do not invent new ones):\n${nodes.map((n) => `- ${n.title}`).join("\n")}\n\n`
+    : "";
+}
+
 export async function generateSections(
   files: FetchedFile[],
-  _nodes: GeneratedNode[],
+  nodes: GeneratedNode[],
   options: GenerationOptions,
 ): Promise<PassResult<GeneratedSection>> {
   const context = buildCodeContext(files);
   const prompt = `Language: ${options.language}${options.framework ? ` / Framework: ${options.framework}` : ""}
 
-Source files:
+${nodeTitleList(nodes)}Source files:
 ${context}
 
 Generate apostila-style lesson sections that teach how to read and understand this codebase. Each section should explain a concept with code examples.`;
@@ -203,12 +224,13 @@ Generate apostila-style lesson sections that teach how to read and understand th
 
 export async function generateExercises(
   files: FetchedFile[],
+  nodes: GeneratedNode[],
   options: GenerationOptions,
 ): Promise<PassResult<GeneratedExercise>> {
   const context = buildCodeContext(files);
   const prompt = `Language: ${options.language}${options.framework ? ` / Framework: ${options.framework}` : ""}
 
-Source files:
+${nodeTitleList(nodes)}Source files:
 ${context}
 
 Generate code comprehension exercises. Mix types: some "Read & predict", some "Why this design", some "Spot the risk", some "Trace the flow". Include at least one advanced exercise.`;
@@ -220,12 +242,13 @@ Generate code comprehension exercises. Mix types: some "Read & predict", some "W
 
 export async function generateCards(
   files: FetchedFile[],
+  nodes: GeneratedNode[],
   options: GenerationOptions,
 ): Promise<PassResult<GeneratedCard>> {
   const context = buildCodeContext(files);
   const prompt = `Language: ${options.language}${options.framework ? ` / Framework: ${options.framework}` : ""}
 
-Source files:
+${nodeTitleList(nodes)}Source files:
 ${context}
 
 Generate SM-2 flashcards that test understanding of code patterns, architecture decisions, and key concepts.`;

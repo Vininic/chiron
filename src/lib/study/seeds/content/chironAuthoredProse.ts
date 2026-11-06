@@ -1,0 +1,13 @@
+import { CHIRON_PROSE_1 } from './chironProse01';
+import { CHIRON_PROSE_2 } from './chironProse02';
+import { CHIRON_PROSE_3 } from './chironProse03';
+import { CHIRON_PROSE_4 } from './chironProse04';
+import { CHIRON_PROSE_5 } from './chironProse05';
+import { CHIRON_PROSE_6 } from './chironProse06';
+import { CHIRON_PROSE_7 } from './chironProse07';
+import { CHIRON_PROSE_8 } from './chironProse08';
+import { CHIRON_PROSE_9 } from './chironProse09';
+import { CHIRON_PROSE_10 } from './chironProse10';
+import { CHIRON_PROSE_11 } from './chironProse11';
+import { CHIRON_PROSE_12 } from './chironProse12';
+export const CHIRON_AUTHORED_PROSE: Record<string,string> = {...CHIRON_PROSE_1,...CHIRON_PROSE_2,...CHIRON_PROSE_3,...CHIRON_PROSE_4,...CHIRON_PROSE_5,...CHIRON_PROSE_6,...CHIRON_PROSE_7,...CHIRON_PROSE_8,...CHIRON_PROSE_9,...CHIRON_PROSE_10,...CHIRON_PROSE_11,...CHIRON_PROSE_12};

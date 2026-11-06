@@ -2,26 +2,35 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import type { ChironIndex, ChironLib } from "./types";
-import { migrateIndex, migrateLib, freshIndex, freshLib } from "./migrate";
+import { freshLib } from "./migrate";
 import { runSeed } from "./seeds";
+import { restore, toPersisted, type ChironData, type PersistedV2 } from "./persistence";
 
 const LOCAL_KEY = "chiron.data";
-const SEED_FLAG = "chiron.seeded.v1";
+/** Pre-2026-10-23 flag; the seed is no longer stored, so it means nothing now. */
+const LEGACY_SEED_FLAG = "chiron.seeded.v1";
 
-interface ChironData {
-  index: ChironIndex;
-  libs: Record<string, ChironLib>;
-}
-
-function emptyData(): ChironData {
-  return { index: freshIndex(), libs: {} };
+// Built-in content comes from code on every load (persistence.ts explains
+// why it must not be stored). Generated once per page; the store compares
+// against it to persist only the person's own state.
+let seedCache: ChironData | null = null;
+function seed(): ChironData {
+  seedCache ??= runSeed();
+  return seedCache;
 }
 
 interface ChironContextValue {
   index: ChironIndex;
   lib: (sourceId: string) => ChironLib;
+  libs: Record<string, ChironLib>;
   replaceIndex: (next: ChironIndex) => void;
   replaceLib: (sourceId: string, lib: ChironLib) => void;
+  replaceAll: (index: ChironIndex, libs: Record<string, ChironLib>) => void;
+  /** The person's own state, as persisted — what a backup file contains. */
+  exportState: () => PersistedV2;
+  /** Restores a backup in either the current or the pre-2026-10-23 format. */
+  importState: (value: unknown) => void;
+  resetAll: () => void;
   pushToCloud: () => Promise<void>;
   pullFromCloud: () => Promise<void>;
   loading: boolean;
@@ -31,41 +40,27 @@ interface ChironContextValue {
 const ChironCtx = createContext<ChironContextValue | null>(null);
 
 function loadLocal(): ChironData {
+  let raw: string | null = null;
+  try { raw = localStorage.getItem(LOCAL_KEY); } catch { /* storage blocked: run on the seed */ }
+  if (!raw) return seed();
   try {
-    const seeded = localStorage.getItem(SEED_FLAG);
-    const raw = localStorage.getItem(LOCAL_KEY);
-    if (!raw || !seeded) {
-      const result = runSeed();
-      localStorage.setItem(SEED_FLAG, "1");
-      const data: ChironData = { index: result.index, libs: result.libs };
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(data));
-      return data;
-    }
-    const parsed = JSON.parse(raw) as ChironData;
-    const hasIndex = parsed.index && Array.isArray(parsed.index.sources);
-    if (!hasIndex) return emptyData();
-    const version = parsed.index.version ?? 0;
-    if (version < 1) {
-      parsed.index = migrateIndex(parsed.index);
-    }
-    if (parsed.libs) {
-      for (const key of Object.keys(parsed.libs)) {
-        const libVersion = parsed.libs[key].version ?? 0;
-        if (libVersion < 1) {
-          parsed.libs[key] = migrateLib(parsed.libs[key], key);
-        }
-      }
-    }
-    return parsed;
+    return restore(JSON.parse(raw), seed());
   } catch {
-    return emptyData();
+    // Unreadable document: keep the seed usable, never a blank app.
+    return seed();
   }
 }
 
-function saveLocal(data: ChironData) {
+function saveLocal(data: ChironData): string | null {
   try {
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(data));
-  } catch { /* noop */ }
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(toPersisted(data, seed())));
+    localStorage.removeItem(LEGACY_SEED_FLAG);
+    return null;
+  } catch (err) {
+    // Surfaced instead of swallowed: a silent failure here is exactly how
+    // every reload used to discard the person's progress.
+    return err instanceof Error ? err.message : "Falha ao salvar o progresso local";
+  }
 }
 
 export function ChironProvider({ children }: { children: ReactNode }) {
@@ -76,7 +71,8 @@ export function ChironProvider({ children }: { children: ReactNode }) {
   const cloudFetched = useRef(false);
 
   useEffect(() => {
-    saveLocal(data);
+    const failure = saveLocal(data);
+    if (failure) setError(failure);
   }, [data]);
 
   useEffect(() => {
@@ -107,7 +103,9 @@ export function ChironProvider({ children }: { children: ReactNode }) {
         return;
       }
       if (cloudData?.value) {
-        setData(cloudData.value as ChironData);
+        // Old rows hold the whole document with random ids; current rows hold
+        // only progress. restore() accepts both.
+        setData(restore(cloudData.value, seed()));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
@@ -123,7 +121,7 @@ export function ChironProvider({ children }: { children: ReactNode }) {
       const supabase = (await import("@/lib/supabase/client")).getSupabaseClient();
       if (!supabase) return;
       const { error: upsertError } = await supabase.from("user_data").upsert(
-        { key: "chiron-data", value: data, version: Date.now() },
+        { key: "chiron-data", value: toPersisted(data, seed()), version: Date.now() },
         { onConflict: "user_id, key" },
       );
       if (upsertError) setError(upsertError.message);
@@ -142,6 +140,14 @@ export function ChironProvider({ children }: { children: ReactNode }) {
       libs: { ...prev.libs, [sourceId]: lib },
     }));
   }, []);
+  const replaceAll = useCallback((index: ChironIndex, libs: Record<string, ChironLib>) => setData({ index, libs }), []);
+  const exportState = useCallback(() => toPersisted(data, seed()), [data]);
+  const importState = useCallback((value: unknown) => setData(restore(value, seed())), []);
+
+  // Reset clears the person's state; the built-in catalog is part of the app.
+  const resetAll = useCallback(() => {
+    setData(seed());
+  }, []);
 
   const lib = useCallback(
     (sourceId: string): ChironLib => data.libs[sourceId] ?? freshLib(sourceId),
@@ -149,8 +155,8 @@ export function ChironProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ index: data.index, lib, replaceIndex, replaceLib, pushToCloud, pullFromCloud, loading, error }),
-    [data.index, lib, replaceIndex, replaceLib, pushToCloud, pullFromCloud, loading, error],
+    () => ({ index: data.index, lib, libs: data.libs, replaceIndex, replaceLib, replaceAll, exportState, importState, resetAll, pushToCloud, pullFromCloud, loading, error }),
+    [data.index, data.libs, lib, replaceIndex, replaceLib, replaceAll, exportState, importState, resetAll, pushToCloud, pullFromCloud, loading, error],
   );
 
   return (

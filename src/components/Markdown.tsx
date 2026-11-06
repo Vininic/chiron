@@ -1,4 +1,34 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
+import { LANG_ALIASES, loadPrism } from "@/lib/prism";
+
+/** Same lazy Prism highlighting as reader/CodeBlock.tsx, applied to Markdown's
+ *  own fenced code blocks (exercise prompts, Aetheris chat replies) — those
+ *  never go through CodeBlock since they arrive as one mixed prose+code
+ *  string, not a structured `Block`. */
+function FencedCode({ lang, code }: { lang: string; code: string }) {
+  const [html, setHtml] = useState<string | null>(null);
+  const normalizedLang = LANG_ALIASES[lang.toLowerCase()] ?? lang.toLowerCase();
+
+  useEffect(() => {
+    let cancelled = false;
+    loadPrism().then((Prism) => {
+      if (cancelled) return;
+      const grammar = Prism.languages[normalizedLang];
+      setHtml(grammar ? Prism.highlight(code, grammar, normalizedLang) : null);
+    });
+    return () => { cancelled = true; };
+  }, [code, normalizedLang]);
+
+  return (
+    <pre className="mb-4 overflow-x-auto rounded-lg border border-border bg-primary-deep p-4 text-[13px] leading-relaxed text-primary-foreground">
+      {html ? (
+        <code className={`language-${lang}`} dangerouslySetInnerHTML={{ __html: html }} />
+      ) : (
+        <code className={`language-${lang}`}>{code}</code>
+      )}
+    </pre>
+  );
+}
 
 /** Dependency-free markdown renderer for Chiron apostilas. The seed content is a
  *  predictable subset — headings, fenced code blocks, bullet/numbered lists,
@@ -6,6 +36,16 @@ import { Fragment, type ReactNode } from "react";
  *  a full markdown stack. Crucially it renders fenced ```code blocks``` as real
  *  <pre> (the apostilas lean on code samples heavily), which the previous
  *  line-per-<p> approach dumped as raw backticked text. */
+
+/** Heading → anchor id, so a section's own headings are link-targetable
+ *  (F6's "âncoras por heading"). Not unique-guaranteed across an entire
+ *  document — two sections with an identically-worded heading would collide
+ *  — but every consumer today renders one section's markdown at a time, so
+ *  that collision isn't reachable in practice. */
+function slugify(text: string): string {
+  return text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
+}
 
 function renderInline(text: string, keyBase: string): ReactNode[] {
   const parts: ReactNode[] = [];
@@ -53,11 +93,7 @@ export default function Markdown({ text }: { text: string }) {
     // Inside a fenced code block: accumulate raw lines until the closing fence.
     if (code) {
       if (fence) {
-        blocks.push(
-          <pre key={`code-${idx}`} className="mb-4 overflow-x-auto rounded-lg border border-border bg-background/60 p-4 text-[13px] leading-relaxed">
-            <code className={`language-${code.lang}`}>{code.lines.join("\n")}</code>
-          </pre>,
-        );
+        blocks.push(<FencedCode key={`code-${idx}`} lang={code.lang} code={code.lines.join("\n")} />);
         code = null;
       } else {
         code.lines.push(line);
@@ -82,7 +118,8 @@ export default function Markdown({ text }: { text: string }) {
         level === 1 ? "mb-3 mt-6 font-display text-xl text-primary"
         : level === 2 ? "mb-2 mt-5 font-display text-lg text-primary"
         : "mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-secondary";
-      blocks.push(<p key={idx} className={cls}>{renderInline(heading[2], `h-${idx}`)}</p>);
+      const slug = slugify(heading[2]);
+      blocks.push(<p key={idx} id={slug} className={`scroll-mt-20 ${cls}`}>{renderInline(heading[2], `h-${idx}`)}</p>);
     } else if (bullet) {
       if (!list || list.ordered) flushList(`list-${idx}`);
       list ??= { ordered: false, items: [] };
@@ -101,11 +138,7 @@ export default function Markdown({ text }: { text: string }) {
   flushList("list-end");
   if (code) {
     // Unclosed fence — still render what we captured rather than dropping it.
-    blocks.push(
-      <pre key="code-end" className="mb-4 overflow-x-auto rounded-lg border border-border bg-background/60 p-4 text-[13px] leading-relaxed">
-        <code className={`language-${code.lang}`}>{code.lines.join("\n")}</code>
-      </pre>,
-    );
+    blocks.push(<FencedCode key="code-end" lang={code.lang} code={code.lines.join("\n")} />);
   }
 
   return <div>{blocks.map((b, i) => <Fragment key={i}>{b}</Fragment>)}</div>;

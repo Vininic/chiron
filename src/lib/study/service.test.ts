@@ -71,20 +71,20 @@ describe("Chiron service", () => {
 
   describe("apostila sections", () => {
     it("adds a section", () => {
-      const { lib, id } = addSection(EMPTY, { sourceId: "s1", nodeId: "n1", title: "Intro", bodyMd: "Hello", citations: [], order: 1 });
+      const { lib, id } = addSection(EMPTY, { sourceId: "s1", chapterId: "c1", nodeId: "n1", title: "Intro", blocks: [{ kind: "prose", md: "Hello" }], order: 1 });
       expect(lib.sections).toHaveLength(1);
       expect(lib.sections[0].title).toBe("Intro");
       expect(id).toBeTruthy();
     });
 
     it("updates a section", () => {
-      const { lib, id } = addSection(EMPTY, { sourceId: "s1", nodeId: "n1", title: "Old", bodyMd: "...", citations: [], order: 1 });
+      const { lib, id } = addSection(EMPTY, { sourceId: "s1", chapterId: "c1", nodeId: "n1", title: "Old", blocks: [], order: 1 });
       const updated = updateSection(lib, id, { title: "New" });
       expect(updated.sections[0].title).toBe("New");
     });
 
     it("removes a section", () => {
-      const { lib, id } = addSection(EMPTY, { sourceId: "s1", nodeId: "n1", title: "Del", bodyMd: "", citations: [], order: 1 });
+      const { lib, id } = addSection(EMPTY, { sourceId: "s1", chapterId: "c1", nodeId: "n1", title: "Del", blocks: [], order: 1 });
       const removed = removeSection(lib, id);
       expect(removed.sections).toHaveLength(0);
     });
@@ -129,6 +129,23 @@ describe("Chiron service", () => {
       const reviewed = reviewCard(withCard, cardId, 1);
       expect(reviewed.cards[0].lapses).toBe(1);
       expect(reviewed.cards[0].intervalDays).toBe(1);
+    });
+
+    it("appends a review log entry on every grading", () => {
+      const base = freshIndex();
+      const { index: withCard, id: cardId } = addCard(base, { sourceId: "s1", nodeId: "n1", frontMd: "Q", backMd: "A" });
+      const reviewed = reviewCard(withCard, cardId, 4);
+      expect(reviewed.reviewLog).toHaveLength(1);
+      expect(reviewed.reviewLog[0]).toMatchObject({ grade: 4, cardId });
+      const reviewedAgain = reviewCard(reviewed, cardId, 1);
+      expect(reviewedAgain.reviewLog).toHaveLength(2);
+      expect(reviewedAgain.reviewLog[1].grade).toBe(1);
+    });
+
+    it("does not log a review for an unknown card id", () => {
+      const base = freshIndex();
+      const reviewed = reviewCard(base, "missing-id", 4);
+      expect(reviewed.reviewLog).toHaveLength(0);
     });
 
     it("filters due cards", () => {

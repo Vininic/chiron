@@ -1,0 +1,13 @@
+import { UBUNTU_PROSE_01 } from "./ubuntuLinuxProse01";
+import { UBUNTU_PROSE_02 } from "./ubuntuLinuxProse02";
+import { UBUNTU_PROSE_03 } from "./ubuntuLinuxProse03";
+import { UBUNTU_PROSE_04 } from "./ubuntuLinuxProse04";
+import { UBUNTU_PROSE_05 } from "./ubuntuLinuxProse05";
+import { UBUNTU_PROSE_06 } from "./ubuntuLinuxProse06";
+import { UBUNTU_PROSE_07 } from "./ubuntuLinuxProse07";
+import { UBUNTU_PROSE_08 } from "./ubuntuLinuxProse08";
+import { UBUNTU_PROSE_09 } from "./ubuntuLinuxProse09";
+import { UBUNTU_PROSE_10 } from "./ubuntuLinuxProse10";
+import { UBUNTU_PROSE_11 } from "./ubuntuLinuxProse11";
+import { UBUNTU_PROSE_12 } from "./ubuntuLinuxProse12";
+export const UBUNTU_LINUX_AUTHORED_PROSE: Record<string,string> = { ...UBUNTU_PROSE_01, ...UBUNTU_PROSE_02, ...UBUNTU_PROSE_03, ...UBUNTU_PROSE_04, ...UBUNTU_PROSE_05, ...UBUNTU_PROSE_06, ...UBUNTU_PROSE_07, ...UBUNTU_PROSE_08, ...UBUNTU_PROSE_09, ...UBUNTU_PROSE_10, ...UBUNTU_PROSE_11, ...UBUNTU_PROSE_12 };

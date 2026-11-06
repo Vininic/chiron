@@ -159,9 +159,16 @@ async function callAiProxy(
   if (!cfg) throw new Error("The hosted AI isn't available (no Supabase project configured). Add your own key in Settings instead.");
   const { systemPrompt, prompt } = flattenHistory(messages);
 
+  // In `vite dev` the app's own server forwards to the function (see
+  // vite.config.ts): the shared ai-proxy only allows the suite's deployed
+  // origins, and this port is not one of them. Production calls it directly.
+  const base = cfg.url.replace(/\/$/, "");
+  const endpoint = import.meta.env.DEV && base === String(import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/$/, "")
+    ? "/__ai-proxy"
+    : `${base}/functions/v1/ai-proxy`;
   let res: Response;
   try {
-    res = await fetch(`${cfg.url.replace(/\/$/, "")}/functions/v1/ai-proxy`, {
+    res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json", apikey: cfg.anonKey, Authorization: `Bearer ${cfg.anonKey}` },
       body: JSON.stringify({ provider, prompt, systemPrompt, temperature: 0.5, maxTokens: 2048, model: modelOf(s) }),

@@ -15,12 +15,11 @@ import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Maps from "@/pages/Maps";
 import Apostila from "@/pages/Apostila";
+import Authoring from "@/pages/Authoring";
 import Practice from "@/pages/Practice";
 import Review from "@/pages/Review";
-import Progress from "@/pages/Progress";
+import Labs from "@/pages/Labs";
 import Aetheris from "@/pages/Aetheris";
-import Settings from "@/pages/Settings";
-import About from "@/pages/About";
 import NotFound from "@/pages/NotFound";
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -76,12 +75,18 @@ const App = () => (
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/maps" element={<Maps />} />
                   <Route path="/apostila" element={<Apostila />} />
+                  <Route path="/apostila/nova" element={<Authoring />} />
                   <Route path="/practice" element={<Practice />} />
                   <Route path="/review" element={<Review />} />
-                  <Route path="/progress" element={<Progress />} />
+                  <Route path="/labs" element={<Labs />} />
+                  <Route path="/labs/:labId" element={<Labs />} />
                   <Route path="/aetheris" element={<Aetheris />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/about" element={<About />} />
+                  {/* Settings became a dialog (suite shell §2.3); the old route stays
+                        so bookmarks resolve instead of hitting NotFound. */}
+                    <Route path="/settings" element={<Navigate to="/dashboard" replace />} />
+                  {/* About became a dialog (suite shell §2.4); the old route stays
+                        so bookmarks resolve instead of hitting NotFound. */}
+                    <Route path="/about" element={<Navigate to="/dashboard" replace />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
